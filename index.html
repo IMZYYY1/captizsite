@@ -231,32 +231,49 @@
     if(a0>0.01){ for(let i=0;i<3;i++){ const ph=((t*0.1+i/3)%1); const rad=18+ph*150;
       ctx.beginPath();ctx.arc(px,py,rad,0,TAU);ctx.strokeStyle='rgba('+INK+','+((1-ph)*0.16*a0)+')';ctx.lineWidth=1;ctx.stroke(); } }
 
-    // SCÈNE 1 : le point trace un site qui prend vie
+    // SCÈNE 1 : silhouette mobile qui se construit
     const siteA=(1-sstep(0.85,1.7,pos))*sstep(0.42,0.9,pos);
-    if(siteA>0.01){
-      const dp=sstep(0.5,1.08,rawScene); const box={x:0,y:0,w:W,h:H};
-      const bx=u=>box.x+u*box.w, by=v=>box.y+v*box.h;
-      const head=drawWireframe(box,dp,siteA,sceneRGB(pos));
-      if(head){ const follow=sstep(0.03,0.12,dp)*(1-sstep(0.86,1.0,dp));
-        orbX=lerp(px,head.x,follow); orbY=lerp(py,head.y,follow); }
-      const dec=sstep(0.06,0.22,dp)*siteA;
-      if(dec>0.01){
-        for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(bx(0.055+i*0.03),by(0.072),box.w*0.0065,0,TAU);ctx.fillStyle='rgba('+INK+','+(0.5*dec)+')';ctx.fill();}
-        if(ctx.roundRect){ctx.strokeStyle='rgba('+INK+','+(0.35*dec)+')';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(bx(0.36),by(0.048),box.w*0.28,box.h*0.04,6);ctx.stroke();}
-      }
-      const live=sstep(0.86,1.0,dp)*siteA;
-      if(live>0.01){
-        // marque (point gradient) qui s'allume
-        drawOrb(bx(0.065),by(0.205),3.4,t*0.6);
-        // CTA rempli (accent) + curseur encre qui clique
-        const cx0=bx(0.08),cy0=by(0.56),cw=box.w*0.22,ch=box.h*0.08;
-        ctx.fillStyle='rgba('+sceneRGB(pos)+','+(0.5*live)+')';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(cx0,cy0,cw,ch,5);ctx.fill();} else ctx.fillRect(cx0,cy0,cw,ch);
-        const cl=(t*0.55)%1, cux=bx(0.20), cuy=by(0.60);
-        ctx.beginPath();ctx.arc(cux,cuy,4+cl*14,0,TAU);ctx.strokeStyle='rgba('+INK+','+((1-cl)*0.45*live)+')';ctx.lineWidth=1.2;ctx.stroke();
-        ctx.fillStyle='rgba('+INK+','+(0.85*live)+')';
-        ctx.beginPath();ctx.moveTo(cux,cuy);ctx.lineTo(cux+9,cuy+3);ctx.lineTo(cux+3,cuy+9);ctx.closePath();ctx.fill();
-      }
+    if(siteA>0.01 && W>640){
+      const dp=sstep(0.38,1.05,rawScene);
+      const sc=sceneRGB(pos);
+      const dcx=W*0.71, dcy=H*0.50;
+      const dw=Math.min(W*0.175,165), dh=dw*1.82;
+      const rr=dw*0.14;
+      ctx.save();
+      // contour du téléphone
+      ctx.globalAlpha=siteA*sstep(0,0.15,dp);
+      ctx.strokeStyle='rgba('+sc+',0.42)'; ctx.lineWidth=1.4; ctx.lineJoin='round';
+      if(ctx.roundRect){ctx.beginPath();ctx.roundRect(dcx-dw/2,dcy-dh/2,dw,dh,rr);ctx.stroke();}
+      // encoche
+      const nw=dw*0.24;
+      ctx.fillStyle='rgba('+sc+',0.20)';
+      if(ctx.roundRect){ctx.beginPath();ctx.roundRect(dcx-nw/2,dcy-dh/2+7,nw,4,2);ctx.fill();}
+      // barre home
+      if(ctx.roundRect){ctx.beginPath();ctx.roundRect(dcx-dw*0.13,dcy+dh/2-9,dw*0.26,2.5,1.5);ctx.fill();}
+      ctx.restore();
+      // blocs de contenu qui apparaissent un à un
+      const pad=dw*0.12, sx=dcx-dw/2+pad, sw=dw-pad*2, sy=dcy-dh/2+dh*0.13;
+      const items=[
+        {dy:0,   h:7,   w:sw*0.80, r:3,  acc:false},
+        {dy:12,  h:5,   w:sw*0.62, r:2,  acc:false},
+        {dy:21,  h:5,   w:sw*0.46, r:2,  acc:false},
+        {dy:38,  h:19,  w:sw*0.65, r:9,  acc:true },
+        {dy:70,  h:dh*0.19, w:sw*0.455, r:4, acc:false},
+        {dy:70,  h:dh*0.19, w:sw*0.455, r:4, acc:false, ox:sw*0.545},
+        {dy:70+dh*0.19+7, h:4, w:sw*0.52, r:2, acc:false},
+      ];
+      items.forEach((b,i)=>{
+        const bal=sstep(i*0.09,i*0.09+0.20,dp)*siteA;
+        if(bal<0.01)return;
+        ctx.globalAlpha=bal;
+        ctx.fillStyle=b.acc?'rgba('+sc+',0.68)':'rgba('+INK+',0.09)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx+(b.ox||0),sy+b.dy,b.w,b.h,b.r||0);ctx.fill();}
+        else ctx.fillRect(sx+(b.ox||0),sy+b.dy,b.w,b.h);
+      });
+      ctx.globalAlpha=1;
+      // le point suit le haut du device pendant la construction
+      const follow=sstep(0.05,0.3,dp)*(1-sstep(0.75,0.95,dp));
+      orbX=lerp(px,dcx,follow); orbY=lerp(py,dcy-dh*0.38,follow);
     }
 
     // SCÈNES 2-3 : visiteurs (encre) -> leads (accent)
@@ -316,14 +333,19 @@
 
     // LE POINT : orbe gradient fluide, qui rétrécit en s'amarrant au CTA
     const dock=sstep(3.5,3.95,pos);
-    const hr=11*(1+Math.sin(t*1.0)*0.04)*(1-dock*0.35);
-    // lueur colorée derrière l'orbe
-    const glowR=hr*5.5;
-    const grd=ctx.createRadialGradient(orbX,orbY,hr*0.2,orbX,orbY,glowR);
-    grd.addColorStop(0,'rgba('+sceneRGB(pos)+',0.2)');
+    const hr=4.5*(1+Math.sin(t*1.2)*0.06)*(1-dock*0.55);
+    // halo coloré doux
+    const glowR=hr*6;
+    const grd=ctx.createRadialGradient(orbX,orbY,0,orbX,orbY,glowR);
+    grd.addColorStop(0,'rgba('+sceneRGB(pos)+',0.20)');
     grd.addColorStop(1,'rgba('+sceneRGB(pos)+',0)');
     ctx.beginPath();ctx.arc(orbX,orbY,glowR,0,TAU);ctx.fillStyle=grd;ctx.fill();
-    drawOrb(orbX,orbY,hr,t*0.5);
+    // point encre principal
+    ctx.beginPath();ctx.arc(orbX,orbY,hr,0,TAU);
+    ctx.fillStyle='rgba('+INK+',0.82)';ctx.fill();
+    // anneau coloré fin autour du point
+    ctx.beginPath();ctx.arc(orbX,orbY,hr+3,0,TAU);
+    ctx.strokeStyle='rgba('+sceneRGB(pos)+',0.32)';ctx.lineWidth=1;ctx.stroke();
 
     // rail + récap
     const act=Math.max(0,Math.min(N-1,Math.round(pos)));
