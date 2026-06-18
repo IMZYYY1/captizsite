@@ -99,7 +99,7 @@
 
   <main>
     <section class="act center" style="--c:#6a5cff"><div class="k">Captiz · Agence</div><h1>Captez plus<br>que des <span class="it">clics</span>.</h1><p class="sub">On crée, on attire, on convertit, on analyse. Une présence qui transforme l'attention en clients.</p></section>
-    <section class="act" style="--c:#B876A1"><div class="k">01 · Créer</div><h2>On crée<br>votre <span class="it">contenu</span>.</h2><p class="sub">Posts, stories, identité visuelle — on construit l'image qui parle à votre audience avant même qu'elle vous contacte.</p></section>
+    <section class="act" style="--c:#B876A1"><div class="k">01 · Créer</div><h2>On crée<br>votre <span class="it">présence</span>.</h2><p class="sub">Site internet, réseaux sociaux, identité visuelle — un univers cohérent qui travaille pour vous 24h/24.</p></section>
     <section class="act right" style="--c:#3E9BA6"><div class="k">02 · Attirer</div><h2>On attire<br>le bon <span class="it">trafic</span>.</h2><p class="sub">Les bons visiteurs, au bon moment. On capte l'attention qui compte.</p></section>
     <section class="act" style="--c:#F6C87D"><div class="k">03 · Convertir</div><h2>On capte<br>vos <span class="it">leads</span>.</h2><p class="sub">Chaque visiteur intéressé devient une opportunité concrète pour votre activité.</p></section>
     <section class="act center" id="contact" style="--c:#6a5cff">
@@ -231,81 +231,98 @@
     if(a0>0.01){ for(let i=0;i<3;i++){ const ph=((t*0.1+i/3)%1); const rad=18+ph*150;
       ctx.beginPath();ctx.arc(px,py,rad,0,TAU);ctx.strokeStyle='rgba('+INK+','+((1-ph)*0.16*a0)+')';ctx.lineWidth=1;ctx.stroke(); } }
 
-    // SCÈNE 1 : téléphone — feed réseaux sociaux
+    // SCÈNE 1 : browser (site) + téléphone (réseaux) ensemble
     const siteA=(1-sstep(0.85,1.7,pos))*sstep(0.42,0.9,pos);
     if(siteA>0.01){
-      const dp=sstep(0.38,1.05,rawScene);
-      const sc=sceneRGB(pos);
-      const isMob=W<640;
-      const dcx=isMob?W*0.5:W*0.71;
-      const dcy=isMob?H*0.80:H*0.50;
-      const dw=Math.min(isMob?W*0.48:W*0.175,162), dh=dw*1.84;
-      const rr=dw*0.13;
-      // contour téléphone
-      const frameAl=siteA*sstep(0,0.15,dp);
-      ctx.save(); ctx.globalAlpha=frameAl;
-      ctx.strokeStyle='rgba('+sc+',0.40)'; ctx.lineWidth=1.4; ctx.lineJoin='round';
-      if(ctx.roundRect){ctx.beginPath();ctx.roundRect(dcx-dw/2,dcy-dh/2,dw,dh,rr);ctx.stroke();}
-      const nw=dw*0.24; ctx.fillStyle='rgba('+sc+',0.18)';
-      if(ctx.roundRect){ctx.beginPath();ctx.roundRect(dcx-nw/2,dcy-dh/2+7,nw,4,2);ctx.fill();}
-      if(ctx.roundRect){ctx.beginPath();ctx.roundRect(dcx-dw*0.13,dcy+dh/2-9,dw*0.26,2.5,1.5);ctx.fill();}
-      ctx.restore();
-      // contenu : feed social
-      const pad=dw*0.10, sx=dcx-dw/2+pad, sw=dw-pad*2;
-      const sy=dcy-dh/2+dh*0.11;
-      const avr=dw*0.075;
-      // — post 1 : header profil
-      const b0=sstep(0.00,0.18,dp)*siteA; if(b0>0.01){
-        ctx.globalAlpha=b0;
-        ctx.fillStyle='rgba('+INK+',0.09)'; ctx.beginPath();ctx.arc(sx+avr,sy+avr,avr,0,TAU);ctx.fill();
-        ctx.strokeStyle='rgba('+sc+',0.50)'; ctx.lineWidth=1;
-        ctx.beginPath();ctx.arc(sx+avr,sy+avr,avr+1.5,0,TAU);ctx.stroke();
-        ctx.fillStyle='rgba('+INK+',0.10)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx+avr*2+5,sy+2,sw*0.40,5,2.5);ctx.fill();
-          ctx.beginPath();ctx.roundRect(sx+avr*2+5,sy+11,sw*0.25,3.5,2);ctx.fill();}
-        ctx.strokeStyle='rgba('+sc+',0.40)'; ctx.lineWidth=1;
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx+sw-sw*0.28,sy+1,sw*0.28,13,6.5);ctx.stroke();}
-      }
-      // — post 1 : image
-      const b1=sstep(0.14,0.30,dp)*siteA; const imgH=dh*0.30; const imgY=sy+avr*2+10;
-      if(b1>0.01){
-        ctx.globalAlpha=b1;
+      const dp=sstep(0.38,1.05,rawScene); const sc=sceneRGB(pos);
+      const mob=W<640;
+      // — dimensions browser —
+      const bw=Math.min(mob?W*0.58:W*0.23,235), bh=bw*0.63;
+      const bcx=mob?W*0.5:W*0.60, bcy=mob?H*0.72:H*0.41;
+      // — dimensions téléphone —
+      const dw=Math.min(mob?W*0.36:W*0.125,132), dh=dw*1.85;
+      const dcx=mob?W*0.5:W*0.745, dcy=mob?H*0.90:H*0.595;
+
+      // ══ BROWSER ══
+      const bAl=siteA*sstep(0,0.14,dp);
+      if(bAl>0.01){
+        ctx.globalAlpha=bAl;
+        ctx.strokeStyle='rgba('+sc+',0.38)'; ctx.lineWidth=1.3; ctx.lineJoin='round';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bcx-bw/2,bcy-bh/2,bw,bh,6);ctx.stroke();}
+        // barre d'onglets
+        ctx.fillStyle='rgba('+sc+',0.08)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bcx-bw/2,bcy-bh/2,bw,bh*0.16,6);ctx.fill();}
+        // dots mac
+        [0,1,2].forEach(i=>{ctx.beginPath();ctx.arc(bcx-bw/2+8+i*9,bcy-bh/2+bh*0.08,2.2,0,TAU);ctx.fillStyle='rgba('+INK+',0.13)';ctx.fill();});
+        // barre URL
         ctx.fillStyle='rgba('+INK+',0.07)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx,imgY,sw,imgH,3);ctx.fill();}
-        ctx.fillStyle='rgba('+sc+',0.18)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx,imgY,sw*0.42,imgH,3);ctx.fill();}
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bcx-bw*0.22,bcy-bh/2+3,bw*0.44,bh*0.09,3);ctx.fill();}
+        ctx.globalAlpha=1;
       }
-      // — post 1 : likes + caption
-      const engY=imgY+imgH+8;
-      const b2=sstep(0.28,0.42,dp)*siteA; if(b2>0.01){
-        ctx.globalAlpha=b2;
-        ctx.fillStyle='rgba('+INK+',0.10)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx,engY,sw*0.18,4.5,2);ctx.fill();
-          ctx.beginPath();ctx.roundRect(sx+sw*0.24,engY,sw*0.14,4.5,2);ctx.fill();
-          ctx.beginPath();ctx.roundRect(sx+sw*0.44,engY,sw*0.12,4.5,2);ctx.fill();}
+      // contenu browser : hero + image droite
+      const bp=bw*0.06, bsx=bcx-bw/2+bp, bsw=bw-bp*2, bsy=bcy-bh/2+bh*0.21;
+      const bc0=sstep(0.12,0.26,dp)*siteA; if(bc0>0.01){
+        ctx.globalAlpha=bc0; ctx.fillStyle='rgba('+INK+',0.11)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bsx,bsy,bsw*0.52,bh*0.10,3);ctx.fill();}
       }
-      const b3=sstep(0.36,0.50,dp)*siteA; if(b3>0.01){
-        ctx.globalAlpha=b3;
-        ctx.fillStyle='rgba('+INK+',0.10)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx,engY+13,sw*0.72,4,2);ctx.fill();
-          ctx.beginPath();ctx.roundRect(sx,engY+21,sw*0.52,4,2);ctx.fill();}
-      }
-      // — post 2 : vignette plus petite
-      const p2y=engY+36;
-      const b4=sstep(0.46,0.62,dp)*siteA; const p2h=dh*0.11;
-      if(b4>0.01){
-        ctx.globalAlpha=b4;
+      const bc1=sstep(0.20,0.34,dp)*siteA; if(bc1>0.01){
+        ctx.globalAlpha=bc1; ctx.fillStyle='rgba('+INK+',0.07)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bsx,bsy+bh*0.14,bsw*0.40,bh*0.07,2.5);ctx.fill();
+          ctx.beginPath();ctx.roundRect(bsx,bsy+bh*0.24,bsw*0.32,bh*0.07,2.5);ctx.fill();}
+        // CTA
+        ctx.fillStyle='rgba('+sc+',0.62)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bsx,bsy+bh*0.38,bsw*0.30,bh*0.14,7);ctx.fill();}
+        // bloc image droite
         ctx.fillStyle='rgba('+INK+',0.07)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx,p2y,sw,p2h,3);ctx.fill();}
-        ctx.fillStyle='rgba('+sc+',0.14)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx,p2y,sw*0.30,p2h,3);ctx.fill();}
-        ctx.fillStyle='rgba('+INK+',0.10)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx+sw*0.36,p2y+p2h*0.18,sw*0.46,4.5,2);ctx.fill();
-          ctx.beginPath();ctx.roundRect(sx+sw*0.36,p2y+p2h*0.56,sw*0.32,3.5,2);ctx.fill();}
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bcx+bw*0.06,bsy-bh*0.02,bw*0.38,bh*0.58,4);ctx.fill();}
+        ctx.fillStyle='rgba('+sc+',0.13)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bcx+bw*0.06,bsy-bh*0.02,bw*0.38,bh*0.30,4);ctx.fill();}
+      }
+
+      // ══ TÉLÉPHONE ══
+      const pAl=siteA*sstep(0.08,0.22,dp);
+      if(pAl>0.01){
+        ctx.globalAlpha=pAl;
+        ctx.strokeStyle='rgba('+sc+',0.38)'; ctx.lineWidth=1.3; ctx.lineJoin='round';
+        const rr=dw*0.13;
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(dcx-dw/2,dcy-dh/2,dw,dh,rr);ctx.stroke();}
+        const nw=dw*0.22; ctx.fillStyle='rgba('+sc+',0.16)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(dcx-nw/2,dcy-dh/2+6,nw,3.5,2);ctx.fill();
+          ctx.beginPath();ctx.roundRect(dcx-dw*0.12,dcy+dh/2-8,dw*0.24,2.5,1.5);ctx.fill();}
+        ctx.globalAlpha=1;
+      }
+      // feed social dans le téléphone
+      const pp=dw*0.10, psx=dcx-dw/2+pp, psw=dw-pp*2, psy=dcy-dh/2+dh*0.11, avr=dw*0.07;
+      const p0=sstep(0.22,0.36,dp)*siteA; if(p0>0.01){
+        ctx.globalAlpha=p0;
+        ctx.fillStyle='rgba('+INK+',0.09)'; ctx.beginPath();ctx.arc(psx+avr,psy+avr,avr,0,TAU);ctx.fill();
+        ctx.strokeStyle='rgba('+sc+',0.46)'; ctx.lineWidth=1;
+        ctx.beginPath();ctx.arc(psx+avr,psy+avr,avr+1.5,0,TAU);ctx.stroke();
+        ctx.fillStyle='rgba('+INK+',0.09)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(psx+avr*2+4,psy+2,psw*0.38,4.5,2);ctx.fill();
+          ctx.beginPath();ctx.roundRect(psx+avr*2+4,psy+10,psw*0.26,3,2);ctx.fill();}
+        ctx.strokeStyle='rgba('+sc+',0.36)'; ctx.lineWidth=1;
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(psx+psw-psw*0.28,psy,psw*0.28,12,6);ctx.stroke();}
+      }
+      const imgH=dh*0.29, imgY=psy+avr*2+9;
+      const p1=sstep(0.32,0.46,dp)*siteA; if(p1>0.01){
+        ctx.globalAlpha=p1; ctx.fillStyle='rgba('+INK+',0.07)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(psx,imgY,psw,imgH,3);ctx.fill();}
+        ctx.fillStyle='rgba('+sc+',0.16)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(psx,imgY,psw*0.44,imgH,3);ctx.fill();}
+      }
+      const engY=imgY+imgH+7;
+      const p2=sstep(0.42,0.56,dp)*siteA; if(p2>0.01){
+        ctx.globalAlpha=p2; ctx.fillStyle='rgba('+INK+',0.10)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(psx,engY,psw*0.17,4,2);ctx.fill();
+          ctx.beginPath();ctx.roundRect(psx+psw*0.23,engY,psw*0.13,4,2);ctx.fill();
+          ctx.beginPath();ctx.roundRect(psx,engY+12,psw*0.68,3.5,2);ctx.fill();
+          ctx.beginPath();ctx.roundRect(psx,engY+20,psw*0.48,3.5,2);ctx.fill();}
       }
       ctx.globalAlpha=1;
-      const follow=sstep(0.05,0.3,dp)*(1-sstep(0.75,0.95,dp));
-      orbX=lerp(px,dcx,follow); orbY=lerp(py,dcy-dh*0.38,follow);
+      const follow=sstep(0.05,0.28,dp)*(1-sstep(0.78,0.96,dp));
+      orbX=lerp(px,mob?W*0.5:(bcx+dcx)/2,follow);
+      orbY=lerp(py,mob?H*0.80:(bcy+dcy)/2,follow);
     }
 
     // SCÈNES 2-3 : visiteurs (encre) -> leads (accent)
