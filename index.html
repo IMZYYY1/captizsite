@@ -231,98 +231,167 @@
     if(a0>0.01){ for(let i=0;i<3;i++){ const ph=((t*0.1+i/3)%1); const rad=18+ph*150;
       ctx.beginPath();ctx.arc(px,py,rad,0,TAU);ctx.strokeStyle='rgba('+INK+','+((1-ph)*0.16*a0)+')';ctx.lineWidth=1;ctx.stroke(); } }
 
-    // SCÈNE 1 : browser (site) + téléphone (réseaux) ensemble
+    // SCÈNE 1 : laptop (site) + téléphone (réseaux) — composition complète
     const siteA=(1-sstep(0.85,1.7,pos))*sstep(0.42,0.9,pos);
     if(siteA>0.01){
-      const dp=sstep(0.38,1.05,rawScene); const sc=sceneRGB(pos);
+      const dp=sstep(0.36,1.02,rawScene); const sc=sceneRGB(pos);
       const mob=W<640;
-      // — dimensions browser —
-      const bw=Math.min(mob?W*0.58:W*0.23,235), bh=bw*0.63;
-      const bcx=mob?W*0.5:W*0.60, bcy=mob?H*0.72:H*0.41;
-      // — dimensions téléphone —
-      const dw=Math.min(mob?W*0.36:W*0.125,132), dh=dw*1.85;
-      const dcx=mob?W*0.5:W*0.745, dcy=mob?H*0.90:H*0.595;
 
-      // ══ BROWSER ══
-      const bAl=siteA*sstep(0,0.14,dp);
-      if(bAl>0.01){
-        ctx.globalAlpha=bAl;
-        ctx.strokeStyle='rgba('+sc+',0.38)'; ctx.lineWidth=1.3; ctx.lineJoin='round';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bcx-bw/2,bcy-bh/2,bw,bh,6);ctx.stroke();}
-        // barre d'onglets
-        ctx.fillStyle='rgba('+sc+',0.08)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bcx-bw/2,bcy-bh/2,bw,bh*0.16,6);ctx.fill();}
-        // dots mac
-        [0,1,2].forEach(i=>{ctx.beginPath();ctx.arc(bcx-bw/2+8+i*9,bcy-bh/2+bh*0.08,2.2,0,TAU);ctx.fillStyle='rgba('+INK+',0.13)';ctx.fill();});
-        // barre URL
-        ctx.fillStyle='rgba('+INK+',0.07)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bcx-bw*0.22,bcy-bh/2+3,bw*0.44,bh*0.09,3);ctx.fill();}
+      // ══════════ LAPTOP ══════════
+      const lsw=Math.min(mob?W*0.70:W*0.295,275), lsh=lsw*0.63, lbh=lsw*0.052;
+      const lcx=mob?W*0.5:W*0.595, lcy=mob?H*0.645:H*0.405;
+
+      // châssis écran
+      const lf=sstep(0,0.13,dp)*siteA;
+      if(lf>0.01){
+        ctx.globalAlpha=lf;
+        ctx.strokeStyle='rgba('+sc+',0.42)'; ctx.lineWidth=1.5; ctx.lineJoin='round';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(lcx-lsw/2,lcy-lsh/2,lsw,lsh,5);ctx.stroke();}
+        // surface écran légère
+        ctx.fillStyle='rgba('+sc+',0.055)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(lcx-lsw/2+2,lcy-lsh/2+2,lsw-4,lsh-4,4);ctx.fill();}
+        // base clavier
+        ctx.fillStyle='rgba('+sc+',0.18)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(lcx-lsw*0.54,lcy+lsh/2,lsw*1.08,lbh,2);ctx.fill();}
+        // encoche caméra
+        ctx.fillStyle='rgba('+INK+',0.14)'; ctx.beginPath();ctx.arc(lcx,lcy-lsh/2+5,2.2,0,TAU);ctx.fill();
         ctx.globalAlpha=1;
       }
-      // contenu browser : hero + image droite
-      const bp=bw*0.06, bsx=bcx-bw/2+bp, bsw=bw-bp*2, bsy=bcy-bh/2+bh*0.21;
-      const bc0=sstep(0.12,0.26,dp)*siteA; if(bc0>0.01){
-        ctx.globalAlpha=bc0; ctx.fillStyle='rgba('+INK+',0.11)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bsx,bsy,bsw*0.52,bh*0.10,3);ctx.fill();}
-      }
-      const bc1=sstep(0.20,0.34,dp)*siteA; if(bc1>0.01){
-        ctx.globalAlpha=bc1; ctx.fillStyle='rgba('+INK+',0.07)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bsx,bsy+bh*0.14,bsw*0.40,bh*0.07,2.5);ctx.fill();
-          ctx.beginPath();ctx.roundRect(bsx,bsy+bh*0.24,bsw*0.32,bh*0.07,2.5);ctx.fill();}
-        // CTA
-        ctx.fillStyle='rgba('+sc+',0.62)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bsx,bsy+bh*0.38,bsw*0.30,bh*0.14,7);ctx.fill();}
-        // bloc image droite
-        ctx.fillStyle='rgba('+INK+',0.07)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bcx+bw*0.06,bsy-bh*0.02,bw*0.38,bh*0.58,4);ctx.fill();}
-        ctx.fillStyle='rgba('+sc+',0.13)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bcx+bw*0.06,bsy-bh*0.02,bw*0.38,bh*0.30,4);ctx.fill();}
+
+      // nav bar du site
+      const ln=sstep(0.08,0.20,dp)*siteA;
+      if(ln>0.01){
+        ctx.globalAlpha=ln;
+        const nx=lcx-lsw/2+10, ny=lcy-lsh/2+10;
+        ctx.fillStyle='rgba('+sc+',0.70)'; ctx.beginPath();ctx.arc(nx+5,ny+5,4.5,0,TAU);ctx.fill();
+        ctx.fillStyle='rgba('+INK+',0.13)';
+        [nx+18,nx+38,nx+57].forEach(x=>{if(ctx.roundRect){ctx.beginPath();ctx.roundRect(x,ny+2,15,4,2);ctx.fill();}});
+        ctx.strokeStyle='rgba('+sc+',0.42)'; ctx.lineWidth=1;
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(lcx+lsw/2-38,ny-1,32,11,5.5);ctx.stroke();}
+        ctx.globalAlpha=1;
       }
 
-      // ══ TÉLÉPHONE ══
-      const pAl=siteA*sstep(0.08,0.22,dp);
-      if(pAl>0.01){
-        ctx.globalAlpha=pAl;
-        ctx.strokeStyle='rgba('+sc+',0.38)'; ctx.lineWidth=1.3; ctx.lineJoin='round';
-        const rr=dw*0.13;
+      // hero : titres + CTA + image droite
+      const lh=sstep(0.16,0.32,dp)*siteA;
+      if(lh>0.01){
+        ctx.globalAlpha=lh;
+        const hx=lcx-lsw/2+10, hy=lcy-lsh/2+29;
+        // headline 2 lignes (plus gras)
+        ctx.fillStyle='rgba('+INK+',0.22)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(hx,hy,lsw*0.37,9,4.5);ctx.fill();
+          ctx.beginPath();ctx.roundRect(hx,hy+14,lsw*0.28,9,4.5);ctx.fill();}
+        // sous-titre
+        ctx.fillStyle='rgba('+INK+',0.11)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(hx,hy+30,lsw*0.27,4.5,2);ctx.fill();
+          ctx.beginPath();ctx.roundRect(hx,hy+38,lsw*0.20,4.5,2);ctx.fill();}
+        // CTA pill (couleur section, bien visible)
+        ctx.fillStyle='rgba('+sc+',0.75)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(hx,hy+53,lsw*0.22,15,7.5);ctx.fill();}
+        // image bloc droite
+        ctx.fillStyle='rgba('+INK+',0.07)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(lcx+lsw*0.07,lcy-lsh*0.38,lsw*0.38,lsh*0.75,4);ctx.fill();}
+        // overlay coloré en haut de l'image
+        ctx.fillStyle='rgba('+sc+',0.22)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(lcx+lsw*0.07,lcy-lsh*0.38,lsw*0.38,lsh*0.38,4);ctx.fill();}
+        ctx.globalAlpha=1;
+      }
+
+      // curseur clignotant (typage en cours)
+      const cur=sstep(0.25,0.38,dp)*siteA;
+      if(cur>0.01){
+        ctx.globalAlpha=cur*(Math.sin(t*4)>0?0.7:0);
+        ctx.fillStyle='rgba('+sc+',1)';
+        ctx.fillRect(lcx-lsw*0.09,lcy-lsh*0.04,1.8,11);
+        ctx.globalAlpha=1;
+      }
+
+      // ══════════ TÉLÉPHONE ══════════
+      const dw=Math.min(mob?W*0.33:W*0.11,115), dh=dw*1.90, rr=dw*0.13;
+      const dcx=mob?W*0.5:W*0.758, dcy=mob?H*0.875:H*0.592;
+
+      const pf=sstep(0.10,0.24,dp)*siteA;
+      if(pf>0.01){
+        ctx.globalAlpha=pf;
+        ctx.strokeStyle='rgba('+sc+',0.40)'; ctx.lineWidth=1.4; ctx.lineJoin='round';
         if(ctx.roundRect){ctx.beginPath();ctx.roundRect(dcx-dw/2,dcy-dh/2,dw,dh,rr);ctx.stroke();}
-        const nw=dw*0.22; ctx.fillStyle='rgba('+sc+',0.16)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(dcx-nw/2,dcy-dh/2+6,nw,3.5,2);ctx.fill();
-          ctx.beginPath();ctx.roundRect(dcx-dw*0.12,dcy+dh/2-8,dw*0.24,2.5,1.5);ctx.fill();}
+        ctx.fillStyle='rgba('+sc+',0.04)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(dcx-dw/2+2,dcy-dh/2+2,dw-4,dh-4,rr-1);ctx.fill();}
+        const nw=dw*0.22; ctx.fillStyle='rgba('+sc+',0.20)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(dcx-nw/2,dcy-dh/2+5,nw,3.5,2);ctx.fill();
+          ctx.beginPath();ctx.roundRect(dcx-dw*0.12,dcy+dh/2-7,dw*0.24,2.5,1.5);ctx.fill();}
         ctx.globalAlpha=1;
       }
-      // feed social dans le téléphone
-      const pp=dw*0.10, psx=dcx-dw/2+pp, psw=dw-pp*2, psy=dcy-dh/2+dh*0.11, avr=dw*0.07;
-      const p0=sstep(0.22,0.36,dp)*siteA; if(p0>0.01){
-        ctx.globalAlpha=p0;
-        ctx.fillStyle='rgba('+INK+',0.09)'; ctx.beginPath();ctx.arc(psx+avr,psy+avr,avr,0,TAU);ctx.fill();
-        ctx.strokeStyle='rgba('+sc+',0.46)'; ctx.lineWidth=1;
-        ctx.beginPath();ctx.arc(psx+avr,psy+avr,avr+1.5,0,TAU);ctx.stroke();
-        ctx.fillStyle='rgba('+INK+',0.09)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(psx+avr*2+4,psy+2,psw*0.38,4.5,2);ctx.fill();
-          ctx.beginPath();ctx.roundRect(psx+avr*2+4,psy+10,psw*0.26,3,2);ctx.fill();}
-        ctx.strokeStyle='rgba('+sc+',0.36)'; ctx.lineWidth=1;
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(psx+psw-psw*0.28,psy,psw*0.28,12,6);ctx.stroke();}
+
+      // stories
+      const psx=dcx-dw/2+dw*0.08, psy=dcy-dh/2+dh*0.09, sr=dw*0.085;
+      const sto=sstep(0.22,0.36,dp)*siteA;
+      if(sto>0.01){
+        ctx.globalAlpha=sto;
+        for(let i=0;i<3;i++){
+          const scx=psx+sr+i*(sr*2.1+dw*0.04);
+          ctx.strokeStyle='rgba('+sc+','+(0.58-i*0.10)+')'; ctx.lineWidth=1.4;
+          ctx.beginPath();ctx.arc(scx,psy+sr,sr+2,0,TAU);ctx.stroke();
+          ctx.fillStyle='rgba('+INK+',0.08)';
+          ctx.beginPath();ctx.arc(scx,psy+sr,sr,0,TAU);ctx.fill();
+        }
+        ctx.globalAlpha=1;
       }
-      const imgH=dh*0.29, imgY=psy+avr*2+9;
-      const p1=sstep(0.32,0.46,dp)*siteA; if(p1>0.01){
-        ctx.globalAlpha=p1; ctx.fillStyle='rgba('+INK+',0.07)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(psx,imgY,psw,imgH,3);ctx.fill();}
-        ctx.fillStyle='rgba('+sc+',0.16)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(psx,imgY,psw*0.44,imgH,3);ctx.fill();}
+
+      // post : header profil + image + engagement
+      const psyP=psy+sr*2+dh*0.06, avr=dw*0.068;
+      const ph0=sstep(0.30,0.44,dp)*siteA;
+      if(ph0>0.01){
+        ctx.globalAlpha=ph0;
+        ctx.fillStyle='rgba('+INK+',0.11)'; ctx.beginPath();ctx.arc(psx+avr,psyP+avr,avr,0,TAU);ctx.fill();
+        ctx.strokeStyle='rgba('+sc+',0.52)'; ctx.lineWidth=1.1;
+        ctx.beginPath();ctx.arc(psx+avr,psyP+avr,avr+1.5,0,TAU);ctx.stroke();
+        ctx.fillStyle='rgba('+INK+',0.12)';
+        const psw=dw*0.80;
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(psx+avr*2+4,psyP+2,psw*0.40,5,2.5);ctx.fill();
+          ctx.beginPath();ctx.roundRect(psx+avr*2+4,psyP+11,psw*0.26,3.5,2);ctx.fill();}
+        ctx.globalAlpha=1;
       }
-      const engY=imgY+imgH+7;
-      const p2=sstep(0.42,0.56,dp)*siteA; if(p2>0.01){
-        ctx.globalAlpha=p2; ctx.fillStyle='rgba('+INK+',0.10)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(psx,engY,psw*0.17,4,2);ctx.fill();
-          ctx.beginPath();ctx.roundRect(psx+psw*0.23,engY,psw*0.13,4,2);ctx.fill();
-          ctx.beginPath();ctx.roundRect(psx,engY+12,psw*0.68,3.5,2);ctx.fill();
-          ctx.beginPath();ctx.roundRect(psx,engY+20,psw*0.48,3.5,2);ctx.fill();}
+      const iH=dh*0.28, iY=psyP+avr*2+8;
+      const ph1=sstep(0.38,0.52,dp)*siteA;
+      if(ph1>0.01){
+        ctx.globalAlpha=ph1;
+        const pw=dw*0.84;
+        ctx.fillStyle='rgba('+INK+',0.07)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(psx,iY,pw,iH,3);ctx.fill();}
+        ctx.fillStyle='rgba('+sc+',0.25)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(psx,iY,pw,iH*0.52,3);ctx.fill();}
+        // badge ❤ 342
+        ctx.fillStyle='rgba('+sc+',0.65)';
+        ctx.beginPath();ctx.arc(psx+pw-8,iY+8,4.5,0,TAU);ctx.fill();
+        ctx.globalAlpha=1;
       }
-      ctx.globalAlpha=1;
+      const eY=iY+iH+6;
+      const ph2=sstep(0.46,0.60,dp)*siteA;
+      if(ph2>0.01){
+        ctx.globalAlpha=ph2; ctx.fillStyle='rgba('+INK+',0.12)';
+        const pw=dw*0.84;
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(psx,eY,pw*0.19,4,2);ctx.fill();
+          ctx.beginPath();ctx.roundRect(psx+pw*0.25,eY,pw*0.15,4,2);ctx.fill();
+          ctx.beginPath();ctx.roundRect(psx,eY+12,pw*0.65,3.5,2);ctx.fill();
+          ctx.beginPath();ctx.roundRect(psx,eY+20,pw*0.44,3.5,2);ctx.fill();}
+        ctx.globalAlpha=1;
+      }
+
+      // ══ arc pointillé laptop → téléphone ══
+      const lnk=sstep(0.48,0.68,dp)*siteA;
+      if(lnk>0.01 && !mob){
+        ctx.globalAlpha=lnk*0.30;
+        ctx.strokeStyle='rgba('+sc+',1)'; ctx.lineWidth=1.1; ctx.setLineDash([3,6]);
+        ctx.beginPath();
+        ctx.moveTo(lcx+lsw/2,lcy+lsh*0.12);
+        ctx.bezierCurveTo(lcx+lsw*0.56,lcy+lsh*0.44,dcx-dw*0.55,dcy-dh*0.40,dcx-dw/2,dcy-dh*0.18);
+        ctx.stroke(); ctx.setLineDash([]);
+        ctx.globalAlpha=1;
+      }
+
       const follow=sstep(0.05,0.28,dp)*(1-sstep(0.78,0.96,dp));
-      orbX=lerp(px,mob?W*0.5:(bcx+dcx)/2,follow);
-      orbY=lerp(py,mob?H*0.80:(bcy+dcy)/2,follow);
+      orbX=lerp(px,mob?W*0.5:(lcx*0.55+dcx*0.45),follow);
+      orbY=lerp(py,mob?H*0.77:(lcy*0.55+dcy*0.45),follow);
     }
 
     // SCÈNES 2-3 : visiteurs (encre) -> leads (accent)
