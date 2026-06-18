@@ -99,7 +99,7 @@
 
   <main>
     <section class="act center" style="--c:#6a5cff"><div class="k">Captiz · Agence</div><h1>Captez plus<br>que des <span class="it">clics</span>.</h1><p class="sub">On crée, on attire, on convertit, on analyse. Une présence qui transforme l'attention en clients.</p></section>
-    <section class="act" style="--c:#B876A1"><div class="k">01 · Créer</div><h2>On crée<br>votre <span class="it">présence</span>.</h2><p class="sub">Un site clair et rapide : votre vitrine qui travaille pour vous, 24h/24.</p></section>
+    <section class="act" style="--c:#B876A1"><div class="k">01 · Créer</div><h2>On crée<br>votre <span class="it">contenu</span>.</h2><p class="sub">Posts, stories, identité visuelle — on construit l'image qui parle à votre audience avant même qu'elle vous contacte.</p></section>
     <section class="act right" style="--c:#3E9BA6"><div class="k">02 · Attirer</div><h2>On attire<br>le bon <span class="it">trafic</span>.</h2><p class="sub">Les bons visiteurs, au bon moment. On capte l'attention qui compte.</p></section>
     <section class="act" style="--c:#F6C87D"><div class="k">03 · Convertir</div><h2>On capte<br>vos <span class="it">leads</span>.</h2><p class="sub">Chaque visiteur intéressé devient une opportunité concrète pour votre activité.</p></section>
     <section class="act center" id="contact" style="--c:#6a5cff">
@@ -231,47 +231,79 @@
     if(a0>0.01){ for(let i=0;i<3;i++){ const ph=((t*0.1+i/3)%1); const rad=18+ph*150;
       ctx.beginPath();ctx.arc(px,py,rad,0,TAU);ctx.strokeStyle='rgba('+INK+','+((1-ph)*0.16*a0)+')';ctx.lineWidth=1;ctx.stroke(); } }
 
-    // SCÈNE 1 : silhouette mobile qui se construit
+    // SCÈNE 1 : téléphone — feed réseaux sociaux
     const siteA=(1-sstep(0.85,1.7,pos))*sstep(0.42,0.9,pos);
-    if(siteA>0.01 && W>640){
+    if(siteA>0.01){
       const dp=sstep(0.38,1.05,rawScene);
       const sc=sceneRGB(pos);
-      const dcx=W*0.71, dcy=H*0.50;
-      const dw=Math.min(W*0.175,165), dh=dw*1.82;
-      const rr=dw*0.14;
-      ctx.save();
-      // contour du téléphone
-      ctx.globalAlpha=siteA*sstep(0,0.15,dp);
-      ctx.strokeStyle='rgba('+sc+',0.42)'; ctx.lineWidth=1.4; ctx.lineJoin='round';
+      const isMob=W<640;
+      const dcx=isMob?W*0.5:W*0.71;
+      const dcy=isMob?H*0.80:H*0.50;
+      const dw=Math.min(isMob?W*0.48:W*0.175,162), dh=dw*1.84;
+      const rr=dw*0.13;
+      // contour téléphone
+      const frameAl=siteA*sstep(0,0.15,dp);
+      ctx.save(); ctx.globalAlpha=frameAl;
+      ctx.strokeStyle='rgba('+sc+',0.40)'; ctx.lineWidth=1.4; ctx.lineJoin='round';
       if(ctx.roundRect){ctx.beginPath();ctx.roundRect(dcx-dw/2,dcy-dh/2,dw,dh,rr);ctx.stroke();}
-      // encoche
-      const nw=dw*0.24;
-      ctx.fillStyle='rgba('+sc+',0.20)';
+      const nw=dw*0.24; ctx.fillStyle='rgba('+sc+',0.18)';
       if(ctx.roundRect){ctx.beginPath();ctx.roundRect(dcx-nw/2,dcy-dh/2+7,nw,4,2);ctx.fill();}
-      // barre home
       if(ctx.roundRect){ctx.beginPath();ctx.roundRect(dcx-dw*0.13,dcy+dh/2-9,dw*0.26,2.5,1.5);ctx.fill();}
       ctx.restore();
-      // blocs de contenu qui apparaissent un à un
-      const pad=dw*0.12, sx=dcx-dw/2+pad, sw=dw-pad*2, sy=dcy-dh/2+dh*0.13;
-      const items=[
-        {dy:0,   h:7,   w:sw*0.80, r:3,  acc:false},
-        {dy:12,  h:5,   w:sw*0.62, r:2,  acc:false},
-        {dy:21,  h:5,   w:sw*0.46, r:2,  acc:false},
-        {dy:38,  h:19,  w:sw*0.65, r:9,  acc:true },
-        {dy:70,  h:dh*0.19, w:sw*0.455, r:4, acc:false},
-        {dy:70,  h:dh*0.19, w:sw*0.455, r:4, acc:false, ox:sw*0.545},
-        {dy:70+dh*0.19+7, h:4, w:sw*0.52, r:2, acc:false},
-      ];
-      items.forEach((b,i)=>{
-        const bal=sstep(i*0.09,i*0.09+0.20,dp)*siteA;
-        if(bal<0.01)return;
-        ctx.globalAlpha=bal;
-        ctx.fillStyle=b.acc?'rgba('+sc+',0.68)':'rgba('+INK+',0.09)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx+(b.ox||0),sy+b.dy,b.w,b.h,b.r||0);ctx.fill();}
-        else ctx.fillRect(sx+(b.ox||0),sy+b.dy,b.w,b.h);
-      });
+      // contenu : feed social
+      const pad=dw*0.10, sx=dcx-dw/2+pad, sw=dw-pad*2;
+      const sy=dcy-dh/2+dh*0.11;
+      const avr=dw*0.075;
+      // — post 1 : header profil
+      const b0=sstep(0.00,0.18,dp)*siteA; if(b0>0.01){
+        ctx.globalAlpha=b0;
+        ctx.fillStyle='rgba('+INK+',0.09)'; ctx.beginPath();ctx.arc(sx+avr,sy+avr,avr,0,TAU);ctx.fill();
+        ctx.strokeStyle='rgba('+sc+',0.50)'; ctx.lineWidth=1;
+        ctx.beginPath();ctx.arc(sx+avr,sy+avr,avr+1.5,0,TAU);ctx.stroke();
+        ctx.fillStyle='rgba('+INK+',0.10)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx+avr*2+5,sy+2,sw*0.40,5,2.5);ctx.fill();
+          ctx.beginPath();ctx.roundRect(sx+avr*2+5,sy+11,sw*0.25,3.5,2);ctx.fill();}
+        ctx.strokeStyle='rgba('+sc+',0.40)'; ctx.lineWidth=1;
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx+sw-sw*0.28,sy+1,sw*0.28,13,6.5);ctx.stroke();}
+      }
+      // — post 1 : image
+      const b1=sstep(0.14,0.30,dp)*siteA; const imgH=dh*0.30; const imgY=sy+avr*2+10;
+      if(b1>0.01){
+        ctx.globalAlpha=b1;
+        ctx.fillStyle='rgba('+INK+',0.07)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx,imgY,sw,imgH,3);ctx.fill();}
+        ctx.fillStyle='rgba('+sc+',0.18)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx,imgY,sw*0.42,imgH,3);ctx.fill();}
+      }
+      // — post 1 : likes + caption
+      const engY=imgY+imgH+8;
+      const b2=sstep(0.28,0.42,dp)*siteA; if(b2>0.01){
+        ctx.globalAlpha=b2;
+        ctx.fillStyle='rgba('+INK+',0.10)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx,engY,sw*0.18,4.5,2);ctx.fill();
+          ctx.beginPath();ctx.roundRect(sx+sw*0.24,engY,sw*0.14,4.5,2);ctx.fill();
+          ctx.beginPath();ctx.roundRect(sx+sw*0.44,engY,sw*0.12,4.5,2);ctx.fill();}
+      }
+      const b3=sstep(0.36,0.50,dp)*siteA; if(b3>0.01){
+        ctx.globalAlpha=b3;
+        ctx.fillStyle='rgba('+INK+',0.10)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx,engY+13,sw*0.72,4,2);ctx.fill();
+          ctx.beginPath();ctx.roundRect(sx,engY+21,sw*0.52,4,2);ctx.fill();}
+      }
+      // — post 2 : vignette plus petite
+      const p2y=engY+36;
+      const b4=sstep(0.46,0.62,dp)*siteA; const p2h=dh*0.11;
+      if(b4>0.01){
+        ctx.globalAlpha=b4;
+        ctx.fillStyle='rgba('+INK+',0.07)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx,p2y,sw,p2h,3);ctx.fill();}
+        ctx.fillStyle='rgba('+sc+',0.14)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx,p2y,sw*0.30,p2h,3);ctx.fill();}
+        ctx.fillStyle='rgba('+INK+',0.10)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(sx+sw*0.36,p2y+p2h*0.18,sw*0.46,4.5,2);ctx.fill();
+          ctx.beginPath();ctx.roundRect(sx+sw*0.36,p2y+p2h*0.56,sw*0.32,3.5,2);ctx.fill();}
+      }
       ctx.globalAlpha=1;
-      // le point suit le haut du device pendant la construction
       const follow=sstep(0.05,0.3,dp)*(1-sstep(0.75,0.95,dp));
       orbX=lerp(px,dcx,follow); orbY=lerp(py,dcy-dh*0.38,follow);
     }
