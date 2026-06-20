@@ -204,38 +204,69 @@
         fn(w,h); ctx.restore();
       };
 
-      // 1 – bloc couleur plein
-      card(-104,-88,144,100,-2.0,0.00,(w,h)=>{
-        ctx.fillStyle='rgba('+sc+',0.86)';
-        ctx.fillRect(-w/2+16,-h/2+16,w-32,h*0.50);
+      // 1 – fenêtre navigateur (desktop)
+      card(-96,-80,152,106,-2.0,0.00,(w,h)=>{
+        const bh=h*0.14;
+        ctx.fillStyle='rgba('+sc+',0.09)';
+        ctx.fillRect(-w/2,-h/2,w,bh);
+        // traffic lights
+        [0.65,0.38,0.18].forEach((op,i)=>{
+          ctx.fillStyle='rgba('+INK+','+op+')';
+          ctx.beginPath();ctx.arc(-w/2+7+i*9,-h/2+bh/2,2.6,0,TAU);ctx.fill();
+        });
+        // URL bar
+        ctx.fillStyle='rgba('+INK+',0.07)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+32,-h/2+bh*0.18,w*0.48,bh*0.64,2);ctx.fill();}
+        // hero block
+        const cy=-h/2+bh+8;
+        ctx.fillStyle='rgba('+sc+',0.13)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+8,cy,w-16,h*0.28,2);ctx.fill();}
+        // lignes contenu
+        [[0.56,0],[0.42,13],[0.50,24]].forEach(([lw,ly])=>{
+          ctx.fillStyle='rgba('+INK+',0.09)';
+          if(ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+8,cy+h*0.33+ly,w*lw,4,2);ctx.fill();}
+        });
+        // CTA pill
+        ctx.fillStyle='rgba('+sc+',0.52)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+8,h/2-16,w*0.34,10,99);ctx.fill();}
       });
 
-      // 2 – typographie Aa
-      card(78,-68,96,96,2.5,0.20,(w,h)=>{
-        ctx.fillStyle='rgba('+sc+',0.88)';
-        ctx.font='bold '+Math.round(h*0.48)+'px Sora,sans-serif';
+      // 2 – cadre mobile
+      card(82,-56,58,100,2.5,0.22,(w,h)=>{
+        ctx.strokeStyle='rgba('+sc+',0.46)'; ctx.lineWidth=1.5;
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+1,-h/2+1,w-2,h-2,9);ctx.stroke();}
+        // notch
+        ctx.fillStyle='rgba('+INK+',0.14)';
+        ctx.beginPath();ctx.arc(0,-h/2+7,4.5,0,TAU);ctx.fill();
+        // hero
+        ctx.fillStyle='rgba('+sc+',0.14)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+5,-h/2+16,w-10,h*0.25,3);ctx.fill();}
+        // lignes
+        [[-6,0.55],[5,0.42],[16,0.48]].forEach(([ly,lw])=>{
+          ctx.fillStyle='rgba('+INK+',0.10)';
+          if(ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+5,h*0.08+ly,w*lw,3.5,2);ctx.fill();}
+        });
+        // pill button
+        ctx.fillStyle='rgba('+sc+',0.52)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(-w*0.30,h/2-18,w*0.60,10,99);ctx.fill();}
+      });
+
+      // 3 – typographie Aa
+      card(-50,60,88,56,1.5,0.40,(w,h)=>{
+        ctx.fillStyle='rgba('+sc+',0.86)';
+        ctx.font='bold '+Math.round(h*0.58)+'px Sora,sans-serif';
         ctx.textAlign='center'; ctx.textBaseline='middle';
         ctx.fillText('Aa',0,2);
       });
 
-      // 3 – cercle logo
-      card(-22,28,80,80,1.5,0.38,(w,h)=>{
-        ctx.strokeStyle='rgba('+sc+',0.76)'; ctx.lineWidth=1.8;
-        ctx.beginPath();ctx.arc(0,-h*0.04,h*0.30,0,TAU);ctx.stroke();
-        ctx.fillStyle='rgba('+sc+',0.78)';
-        ctx.font='500 '+Math.round(h*0.26)+'px Sora,sans-serif';
-        ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillText('C',0,-h*0.04);
-      });
-
-      // 4 – dégradé de teinte
-      card(72,48,112,44,2.0,0.56,(w,h)=>{
+      // 4 – palette teinte
+      card(70,54,108,38,2.0,0.58,(w,h)=>{
         [0.88,0.58,0.28,0.10].forEach((a,i)=>{
           ctx.fillStyle='rgba('+sc+','+a+')';
           const sw=w/4;
-          if(i===0&&ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+i*sw,-h/2+12,sw,h-24,[4,0,0,4]);ctx.fill();}
-          else if(i===3&&ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+i*sw,-h/2+12,sw,h-24,[0,4,4,0]);ctx.fill();}
-          else ctx.fillRect(-w/2+i*sw,-h/2+12,sw,h-24);
+          if(i===0&&ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+i*sw,-h/2+10,sw,h-20,[4,0,0,4]);ctx.fill();}
+          else if(i===3&&ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+i*sw,-h/2+10,sw,h-20,[0,4,4,0]);ctx.fill();}
+          else ctx.fillRect(-w/2+i*sw,-h/2+10,sw,h-20);
         });
       });
 
