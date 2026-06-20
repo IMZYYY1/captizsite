@@ -271,7 +271,7 @@
       });
 
       const fol1=sstep(0.05,0.28,dp)*(1-sstep(0.78,0.96,dp));
-      orbX=lerp(px,mob?W*0.5:bcx,fol1); orbY=lerp(py,mob?H*0.58:bcy,fol1);
+      orbX=lerp(px,mob?W*0.5:bcx+(-96)*sk,fol1); orbY=lerp(py,mob?H*0.58:bcy+(-80)*sk,fol1);
     }
 
     // SCÈNES 2-3 : visiteurs (encre) -> leads (accent)
