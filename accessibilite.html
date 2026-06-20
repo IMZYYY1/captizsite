@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Accessibilité · Captiz</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f4f1e9'/%3E%3Ccircle cx='16' cy='16' r='8' fill='%236a5cff'/%3E%3C/svg%3E"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600&family=Hanken+Grotesk:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f4f1e9;--ink:#1a1916;--muted:rgba(26,25,22,.68);--faint:rgba(26,25,22,.38);--line:rgba(26,25,22,.12);--accent:#6a5cff;--mono:'JetBrains Mono',monospace;--display:'Sora',system-ui,sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:"Hanken Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.7;min-height:100vh}
+  body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.04;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");background-size:180px}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:20px clamp(24px,8vw,120px);border-bottom:1px solid var(--line)}
+  .brand{font-family:var(--display);font-size:17px;font-weight:600;color:var(--ink);text-decoration:none;letter-spacing:-.02em}
+  .back{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:7px;transition:.2s}
+  .back:hover{color:var(--ink)}
+  .back::before{content:"←"}
+  main{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:clamp(48px,8vh,96px) clamp(24px,8vw,48px) 96px}
+  .page-label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+  .page-label::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
+  h1{font-family:var(--display);font-size:clamp(28px,4vw,42px);font-weight:600;letter-spacing:-.025em;line-height:1.1;margin-bottom:48px}
+  h2{font-family:var(--display);font-size:17px;font-weight:600;letter-spacing:-.015em;margin:40px 0 12px;color:var(--ink)}
+  p{color:var(--muted);font-size:15.5px;margin-bottom:14px}
+  ul{color:var(--muted);font-size:15.5px;padding-left:20px;margin-bottom:14px;display:flex;flex-direction:column;gap:6px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .sep{border:none;border-top:1px solid var(--line);margin:36px 0}
+  .badge{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:8px 14px;border-radius:99px;border:1px solid var(--line);color:var(--muted);margin-bottom:28px}
+  .badge .dot{width:8px;height:8px;border-radius:50%;background:#F6C87D;flex:none}
+  footer{position:relative;z-index:1;border-top:1px solid var(--line);padding:28px clamp(24px,8vw,120px);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+  .footer-nav{display:flex;gap:22px;flex-wrap:wrap}
+  .footer-nav a,.footer-copy{font-family:var(--mono);font-size:10px;letter-spacing:.07em;color:var(--faint);text-decoration:none;transition:.2s}
+  .footer-nav a:hover{color:var(--ink)}
+</style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="index.html">Captiz</a>
+  <a class="back" href="index.html">Accueil</a>
+</nav>
+<main>
+  <div class="page-label">Légal</div>
+  <h1>Déclaration d'accessibilité</h1>
+
+  <div class="badge"><span class="dot"></span>Partiellement conforme — RGAA 4.1</div>
+
+  <p>Captiz s'engage à rendre son site internet accessible conformément à l'article 47 de la loi n°2005-102 du 11 février 2005. Cette déclaration d'accessibilité s'applique au site <strong>captiz.fr</strong>.</p>
+
+  <hr class="sep">
+
+  <h2>État de conformité</h2>
+  <p>Le site captiz.fr est <strong>partiellement conforme</strong> avec le Référentiel Général d'Amélioration de l'Accessibilité (RGAA) version 4.1. Les non-conformités et dérogations sont listées ci-dessous.</p>
+
+  <hr class="sep">
+
+  <h2>Contenus non accessibles</h2>
+  <p>Les contenus listés ci-dessous ne sont pas accessibles pour les raisons suivantes :</p>
+  <ul>
+    <li>Les animations canvas (arrière-plan interactif) ne sont pas restituées par les lecteurs d'écran. Elles sont purement décoratives et sans impact sur la compréhension du contenu.</li>
+    <li>Certaines transitions d'animation peuvent être gênantes pour les personnes sensibles au mouvement. Un media query <code>prefers-reduced-motion</code> désactive les animations pour ces utilisateurs.</li>
+    <li>Les contrastes de certains textes secondaires peuvent être insuffisants selon les critères WCAG 2.1 AA.</li>
+  </ul>
+
+  <hr class="sep">
+
+  <h2>Technologies utilisées</h2>
+  <ul>
+    <li>HTML5</li>
+    <li>CSS3</li>
+    <li>JavaScript (Canvas 2D API)</li>
+  </ul>
+
+  <hr class="sep">
+
+  <h2>Environnement de test</h2>
+  <p>Les tests ont été effectués sur les navigateurs et technologies d'assistance suivants :</p>
+  <ul>
+    <li>Chrome / NVDA (Windows)</li>
+    <li>Safari / VoiceOver (macOS)</li>
+    <li>Firefox / JAWS (Windows)</li>
+  </ul>
+
+  <hr class="sep">
+
+  <h2>Retour d'information et contact</h2>
+  <p>Si vous n'arrivez pas à accéder à un contenu ou à un service, vous pouvez contacter le responsable du site pour être orienté vers une alternative accessible ou obtenir le contenu sous une autre forme.</p>
+  <p>Email : <a href="mailto:hello@captiz.fr">hello@captiz.fr</a></p>
+  <p>Nous nous engageons à répondre dans un délai de 2 jours ouvrés.</p>
+
+  <hr class="sep">
+
+  <h2>Voie de recours</h2>
+  <p>Si vous constatez un défaut d'accessibilité vous empêchant d'accéder à un contenu ou une fonctionnalité du site, et que vous nous le signalez sans obtenir de réponse satisfaisante, vous êtes en droit de faire parvenir vos doléances ou une demande de saisine au Défenseur des droits : <a href="https://www.defenseurdesdroits.fr" target="_blank" rel="noopener">defenseurdesdroits.fr</a>.</p>
+
+  <hr class="sep">
+
+  <h2>Date d'établissement</h2>
+  <p>Cette déclaration a été établie le <strong>20 juin 2025</strong>.</p>
+</main>
+
+<footer>
+  <span class="footer-copy">© 2025 Captiz</span>
+  <nav class="footer-nav">
+    <a href="mentions-legales.html">Mentions légales</a>
+    <a href="accessibilite.html">Accessibilité</a>
+    <a href="politique-confidentialite.html">Confidentialité</a>
+  </nav>
+</footer>
+</body>
+</html>
