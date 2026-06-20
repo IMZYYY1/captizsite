@@ -3,113 +3,159 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Politique de confidentialité · Captiz</title>
+<title>Confidentialité · Captiz</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f4f1e9'/%3E%3Ccircle cx='16' cy='16' r='8' fill='%236a5cff'/%3E%3C/svg%3E"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600&family=Hanken+Grotesk:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Hanken+Grotesk:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#f4f1e9;--ink:#1a1916;--muted:rgba(26,25,22,.68);--faint:rgba(26,25,22,.38);--line:rgba(26,25,22,.12);--accent:#6a5cff;--mono:'JetBrains Mono',monospace;--display:'Sora',system-ui,sans-serif}
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--ink);font-family:"Hanken Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.7;min-height:100vh}
-  body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.04;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");background-size:180px}
-  nav{display:flex;align-items:center;justify-content:space-between;padding:20px clamp(24px,8vw,120px);border-bottom:1px solid var(--line)}
-  .brand{font-family:var(--display);font-size:17px;font-weight:600;color:var(--ink);text-decoration:none;letter-spacing:-.02em}
-  .back{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:7px;transition:.2s}
-  .back:hover{color:var(--ink)}
-  .back::before{content:"←"}
-  main{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:clamp(48px,8vh,96px) clamp(24px,8vw,48px) 96px}
-  .page-label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:20px;display:flex;align-items:center;gap:8px}
-  .page-label::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
-  h1{font-family:var(--display);font-size:clamp(28px,4vw,42px);font-weight:600;letter-spacing:-.025em;line-height:1.1;margin-bottom:48px}
-  h2{font-family:var(--display);font-size:17px;font-weight:600;letter-spacing:-.015em;margin:40px 0 12px;color:var(--ink)}
-  p{color:var(--muted);font-size:15.5px;margin-bottom:14px}
-  ul{color:var(--muted);font-size:15.5px;padding-left:20px;margin-bottom:14px;display:flex;flex-direction:column;gap:6px}
-  a{color:var(--accent);text-decoration:none}
-  a:hover{text-decoration:underline}
-  .sep{border:none;border-top:1px solid var(--line);margin:36px 0}
-  .table-wrap{overflow-x:auto;margin-bottom:14px}
-  table{width:100%;border-collapse:collapse;font-size:14.5px;color:var(--muted)}
-  th{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);text-align:left;padding:10px 14px;border-bottom:1px solid var(--line)}
-  td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
-  tr:last-child td{border-bottom:none}
-  footer{position:relative;z-index:1;border-top:1px solid var(--line);padding:28px clamp(24px,8vw,120px);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
-  .footer-nav{display:flex;gap:22px;flex-wrap:wrap}
-  .footer-nav a,.footer-copy{font-family:var(--mono);font-size:10px;letter-spacing:.07em;color:var(--faint);text-decoration:none;transition:.2s}
-  .footer-nav a:hover{color:var(--ink)}
+:root{--bg:#f4f1e9;--ink:#1a1916;--muted:rgba(26,25,22,.62);--faint:rgba(26,25,22,.36);--line:rgba(26,25,22,.10);--accent:#6a5cff;--mono:'JetBrains Mono',monospace;--display:'Sora',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:"Hanken Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.72}
+body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.042;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");background-size:180px}
+nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:18px clamp(24px,7vw,100px);background:rgba(244,241,233,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.brand{font-family:var(--display);font-size:16px;font-weight:600;color:var(--ink);text-decoration:none;letter-spacing:-.022em}
+.back{font-family:var(--mono);font-size:10px;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:8px;transition:.2s}
+.back svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:.2s}
+.back:hover{color:var(--ink)}.back:hover svg{transform:translateX(-3px)}
+.hero{padding:clamp(56px,9vh,110px) clamp(24px,7vw,100px) clamp(40px,6vh,72px);max-width:1100px;margin:0 auto}
+.hero-tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:22px;display:flex;align-items:center;gap:8px}
+.hero-tag::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;flex:none}
+h1{font-family:var(--display);font-size:clamp(40px,6vw,72px);font-weight:700;letter-spacing:-.035em;line-height:1.02}
+.hero-sub{margin-top:20px;font-size:16px;color:var(--muted);max-width:480px}
+.content{max-width:700px;margin:0 auto clamp(80px,12vh,140px);padding:0 clamp(24px,7vw,100px)}
+.block{margin-bottom:56px}
+.block-num{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+h2{font-family:var(--display);font-size:clamp(18px,2.2vw,24px);font-weight:600;letter-spacing:-.018em;color:var(--ink);margin-bottom:16px}
+p{font-size:15.5px;color:var(--muted);margin-bottom:12px;line-height:1.72}
+p:last-child{margin-bottom:0}
+ul{font-size:15.5px;color:var(--muted);padding-left:0;margin-bottom:12px;list-style:none;display:flex;flex-direction:column;gap:8px}
+ul li{padding-left:18px;position:relative}
+ul li::before{content:"—";position:absolute;left:0;color:var(--accent);font-family:var(--mono);font-size:12px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+strong{color:var(--ink);font-weight:500}
+.div{height:1px;background:var(--line);margin-bottom:56px}
+/* Data cards */
+.data-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media(max-width:560px){.data-grid{grid-template-columns:1fr}}
+.data-card{border:1px solid var(--line);border-radius:8px;padding:18px 20px}
+.data-card-label{font-family:var(--mono);font-size:10px;letter-spacing:.10em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+.data-card-val{font-size:15px;color:var(--ink);font-weight:500;margin-bottom:4px}
+.data-card-meta{font-size:13px;color:var(--muted)}
+/* Rights grid */
+.rights-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){.rights-grid{grid-template-columns:1fr}}
+.right-item{border-left:2px solid var(--accent);padding:10px 14px}
+.right-item strong{display:block;font-size:14px;color:var(--ink);font-weight:600;margin-bottom:4px;font-family:var(--display)}
+.right-item span{font-size:13.5px;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding:24px clamp(24px,7vw,100px);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+.foot-links{display:flex;gap:20px;flex-wrap:wrap}
+.foot-links a,.foot-copy{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--faint);text-decoration:none;transition:.2s}
+.foot-links a:hover{color:var(--ink)}
 </style>
 </head>
 <body>
 <nav>
   <a class="brand" href="index.html">Captiz</a>
-  <a class="back" href="index.html">Accueil</a>
+  <a class="back" href="index.html">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Accueil
+  </a>
 </nav>
-<main>
-  <div class="page-label">Légal</div>
-  <h1>Politique de confidentialité</h1>
 
-  <p>Captiz attache une grande importance à la protection de vos données personnelles. Cette politique décrit comment nous collectons, utilisons et protégeons vos informations conformément au Règlement Général sur la Protection des Données (RGPD — UE 2016/679).</p>
+<div class="hero">
+  <div class="hero-tag">Légal</div>
+  <h1>Politique de<br>confidentialité</h1>
+  <p class="hero-sub">Comment Captiz collecte, utilise et protège vos données, conformément au RGPD (UE 2016/679).</p>
+</div>
 
-  <hr class="sep">
+<div class="content">
 
-  <h2>Responsable du traitement</h2>
-  <p><strong>Captiz</strong><br>Email : <a href="mailto:hello@captiz.fr">hello@captiz.fr</a></p>
-
-  <hr class="sep">
-
-  <h2>Données collectées</h2>
-  <p>Nous collectons uniquement les données que vous nous transmettez volontairement via le formulaire de contact :</p>
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>Donnée</th><th>Finalité</th><th>Base légale</th><th>Durée</th></tr></thead>
-      <tbody>
-        <tr><td>Nom, prénom</td><td>Vous identifier et personnaliser la réponse</td><td>Consentement</td><td>3 ans</td></tr>
-        <tr><td>Adresse email</td><td>Répondre à votre demande</td><td>Consentement</td><td>3 ans</td></tr>
-        <tr><td>Message</td><td>Traiter votre demande</td><td>Consentement</td><td>3 ans</td></tr>
-      </tbody>
-    </table>
+  <div class="block">
+    <div class="block-num">01 — Responsable</div>
+    <h2>Responsable du traitement</h2>
+    <p><strong>Captiz</strong> — agence web<br>Contact : <a href="mailto:hello@captiz.fr">hello@captiz.fr</a></p>
   </div>
-  <p>Aucune donnée n'est collectée à des fins publicitaires ou revendue à des tiers.</p>
 
-  <hr class="sep">
+  <div class="div"></div>
 
-  <h2>Hébergement des données</h2>
-  <p>Ce site est hébergé par <strong>Vercel Inc.</strong> (San Francisco, CA, USA). Les données transmises via le formulaire de contact sont traitées via notre messagerie professionnelle et ne transitent pas par les serveurs Vercel.</p>
+  <div class="block">
+    <div class="block-num">02 — Données collectées</div>
+    <h2>Ce qu'on collecte</h2>
+    <p>Uniquement les données que vous nous transmettez via le formulaire de contact :</p>
+    <div class="data-grid">
+      <div class="data-card">
+        <div class="data-card-label">Donnée</div>
+        <div class="data-card-val">Nom &amp; prénom</div>
+        <div class="data-card-meta">Consentement · 3 ans</div>
+      </div>
+      <div class="data-card">
+        <div class="data-card-label">Donnée</div>
+        <div class="data-card-val">Adresse email</div>
+        <div class="data-card-meta">Consentement · 3 ans</div>
+      </div>
+      <div class="data-card">
+        <div class="data-card-label">Donnée</div>
+        <div class="data-card-val">Message</div>
+        <div class="data-card-meta">Consentement · 3 ans</div>
+      </div>
+    </div>
+    <p>Aucune donnée n'est collectée à des fins publicitaires ou revendue à des tiers.</p>
+  </div>
 
-  <hr class="sep">
+  <div class="div"></div>
 
-  <h2>Cookies</h2>
-  <p>Ce site n'utilise <strong>aucun cookie de traçage</strong> (publicitaire, analytique ou de profilage). Aucun outil de tracking tiers (Google Analytics, Facebook Pixel, etc.) n'est installé.</p>
-  <p>Des cookies techniques strictement nécessaires au bon fonctionnement du site peuvent être déposés. Ils ne nécessitent pas de consentement.</p>
+  <div class="block">
+    <div class="block-num">03 — Hébergement</div>
+    <h2>Où vont vos données</h2>
+    <p>Ce site est hébergé par <strong>Vercel Inc.</strong> (San Francisco, USA). Les données transmises via le formulaire transitent uniquement par notre messagerie professionnelle — elles ne sont pas stockées sur les serveurs Vercel.</p>
+  </div>
 
-  <hr class="sep">
+  <div class="div"></div>
 
-  <h2>Vos droits</h2>
-  <p>Conformément au RGPD, vous disposez des droits suivants sur vos données personnelles :</p>
-  <ul>
-    <li><strong>Droit d'accès</strong> — obtenir une copie de vos données</li>
-    <li><strong>Droit de rectification</strong> — corriger des données inexactes</li>
-    <li><strong>Droit à l'effacement</strong> — demander la suppression de vos données</li>
-    <li><strong>Droit d'opposition</strong> — vous opposer à un traitement</li>
-    <li><strong>Droit à la portabilité</strong> — recevoir vos données dans un format structuré</li>
-    <li><strong>Droit à la limitation</strong> — restreindre un traitement</li>
-  </ul>
-  <p>Pour exercer ces droits, contactez-nous à <a href="mailto:hello@captiz.fr">hello@captiz.fr</a>. Nous répondrons dans un délai maximum d'un mois.</p>
+  <div class="block">
+    <div class="block-num">04 — Cookies</div>
+    <h2>Cookies</h2>
+    <p>Ce site n'utilise <strong>aucun cookie de traçage</strong> — pas de Google Analytics, pas de Facebook Pixel, pas de profilage. Seuls des cookies techniques strictement nécessaires peuvent être déposés, sans votre consentement requis.</p>
+  </div>
 
-  <hr class="sep">
+  <div class="div"></div>
 
-  <h2>Réclamation</h2>
-  <p>Si vous estimez que le traitement de vos données n'est pas conforme à la réglementation, vous pouvez introduire une réclamation auprès de la <strong>CNIL</strong> : <a href="https://www.cnil.fr" target="_blank" rel="noopener">cnil.fr</a></p>
+  <div class="block">
+    <div class="block-num">05 — Vos droits</div>
+    <h2>Vos droits RGPD</h2>
+    <div class="rights-grid">
+      <div class="right-item"><strong>Accès</strong><span>Obtenir une copie de vos données</span></div>
+      <div class="right-item"><strong>Rectification</strong><span>Corriger des informations inexactes</span></div>
+      <div class="right-item"><strong>Effacement</strong><span>Demander la suppression de vos données</span></div>
+      <div class="right-item"><strong>Opposition</strong><span>Vous opposer à un traitement</span></div>
+      <div class="right-item"><strong>Portabilité</strong><span>Recevoir vos données dans un format structuré</span></div>
+      <div class="right-item"><strong>Limitation</strong><span>Restreindre un traitement en cours</span></div>
+    </div>
+    <p style="margin-top:16px">Pour exercer ces droits : <a href="mailto:hello@captiz.fr">hello@captiz.fr</a> — réponse sous 30 jours.</p>
+  </div>
 
-  <hr class="sep">
+  <div class="div"></div>
 
-  <h2>Mise à jour</h2>
-  <p>Cette politique de confidentialité a été mise à jour le <strong>20 juin 2025</strong>. Nous nous réservons le droit de la modifier à tout moment.</p>
-</main>
+  <div class="block">
+    <div class="block-num">06 — Réclamation</div>
+    <h2>Réclamation</h2>
+    <p>Si vous estimez que vos droits ne sont pas respectés, vous pouvez saisir la <a href="https://www.cnil.fr" target="_blank" rel="noopener">CNIL</a>.</p>
+  </div>
+
+  <div class="div"></div>
+
+  <div class="block">
+    <div class="block-num">07 — Mise à jour</div>
+    <h2>Dernière mise à jour</h2>
+    <p><strong>20 juin 2025</strong></p>
+  </div>
+
+</div>
 
 <footer>
-  <span class="footer-copy">© 2025 Captiz</span>
-  <nav class="footer-nav">
+  <span class="foot-copy">© 2025 Captiz</span>
+  <nav class="foot-links">
     <a href="mentions-legales.html">Mentions légales</a>
     <a href="accessibilite.html">Accessibilité</a>
     <a href="politique-confidentialite.html">Confidentialité</a>
