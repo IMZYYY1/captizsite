@@ -125,18 +125,31 @@
 
 <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
 <script>
+/* Captiz — moteur "fil conducteur" : un trait d'encre unique et continu qui
+   ne se rompt jamais et se reconfigure d'un chapitre à l'autre.
+     0 Signal   : ligne plate parcourue par une impulsion
+     1 Créer    : la ligne se replie en cadre de site (UI tracée à l'intérieur)
+     2 Attirer  : le cadre tient, le trafic afflue vers lui
+     3 Convertir: le cadre se pince en entonnoir, les visiteurs deviennent leads
+     4 Analyser : l'entonnoir se déplie en courbe de croissance
+   Le morphing est piloté par le scroll (scrubbing), indépendant du framerate. */
 (function(){
+  'use strict';
   const cv=document.getElementById('c'), ctx=cv.getContext('2d');
   const hint=document.getElementById('hint');
   const railBtns=[...document.querySelectorAll('#rail button')], recapSpans=[...document.querySelectorAll('#recap [data-r]')];
   const N=5; let W,H,DPR, pos=0, t=0, prev=performance.now();
-  // taux de lissage (par seconde, indépendant du framerate) — locked-to-scroll façon scrub
-  const K_POS=5.5, K_PT=8.5;
-  const clamp01=v=>v<0?0:v>1?1:v, lerp=(a,b,t)=>a+(b-a)*t, smooth=x=>{x=clamp01(x);return x*x*(3-2*x);};
+  const K_POS=5.5;                                        // lissage scroll (par seconde)
+  const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  // ── maths ──
+  const clamp=(v,a,b)=>v<a?a:v>b?b:v, clamp01=v=>v<0?0:v>1?1:v, lerp=(a,b,t)=>a+(b-a)*t;
+  const smooth=x=>{x=clamp01(x);return x*x*(3-2*x);};
   const sstep=(e0,e1,x)=>smooth((x-e0)/(e1-e0||1e-6));
   const easeInOut=x=>{x=clamp01(x);return x<0.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;};
+  const easeOut=x=>{x=clamp01(x);return 1-Math.pow(1-x,3);};
   const TAU=Math.PI*2;
-  const INK='26,25,22';                                 // encre
+  const INK='26,25,22';
   const SCENE_HEX=['#6a5cff','#B876A1','#3E9BA6','#F6C87D','#6a5cff'];
   const SCENE_RGB=[[106,92,255],[184,118,161],[62,155,166],[246,200,125],[106,92,255]];
   function sceneRGBArr(p){const i0=Math.max(0,Math.min(N-2,Math.floor(p))),f=smooth(clamp01(p-i0));
@@ -144,352 +157,212 @@
     return [Math.round(lerp(c0[0],c1[0],f)),Math.round(lerp(c0[1],c1[1],f)),Math.round(lerp(c0[2],c1[2],f))];}
   function sceneRGB(p){return sceneRGBArr(p).join(',');}
 
-  const STATE=[{x:0.5,y:0.40},{x:0.50,y:0.27},{x:0.30,y:0.50},{x:0.68,y:0.49},{x:0.5,y:0.58}];
-
-  let visitors=[];
-  function build(){ visitors=[]; const n=Math.round(Math.min(80,Math.max(40,W/22)));
-    for(let i=0;i<n;i++){ const a=Math.random()*TAU; visitors.push({
-      sx:Math.cos(a)*(0.6+Math.random()*0.7)*W*0.6, sy:Math.sin(a)*(0.6+Math.random()*0.7)*H*0.6,
-      oa:a, orad:0.55+Math.random()*0.5, ph:Math.random()*6.28, sp:0.4+Math.random()*0.8, cap:0 }); }
+  // ── géométrie du cadre / entonnoir / courbe (dépend de W,H) ──
+  function geo(){
+    const mob=W<760;
+    const w=Math.min(mob?W*0.74:W*0.42, 560), h=w*0.62;
+    const cx=W*0.5, cy=H*0.43;
+    return {mob,w,h,cx,cy,L:cx-w/2,R:cx+w/2,T:cy-h/2,B:cy+h/2};
   }
+
+  // ── les 5 états du fil : f(u in[0,1]) -> {x,y}. Même nb de points => morph fluide ──
+  function sLine(u){ const g=geo(); const x0=W*0.16,x1=W*0.84,my=g.T+g.h*0.5;
+    const pc=(t*0.10)%1.0, d=u-pc, bump=-Math.exp(-Math.pow(d/0.05,2))*g.h*0.34;
+    const idle=Math.sin(u*TAU*2+t*0.6)*g.h*0.012;
+    return {x:lerp(x0,x1,u), y:my+bump+idle}; }
+  function rectAt(u,g){ const P=2*(g.w+g.h); let d=u*P,x,y;
+    if(d<g.w){x=g.L+d;y=g.T;} else if(d<g.w+g.h){x=g.R;y=g.T+(d-g.w);}
+    else if(d<2*g.w+g.h){x=g.R-(d-g.w-g.h);y=g.B;} else {x=g.L;y=g.B-(d-2*g.w-g.h);} return {x,y}; }
+  function sRect(u){ return rectAt(u,geo()); }
+  function sFunnel(u){ const g=geo(); const bx=g.cx, by=g.B+g.h*0.34;
+    // périmètre : haut (TL->TR) -> côté droit (TR->bas) -> côté gauche (bas->TL)
+    if(u<0.34){const k=u/0.34;return{x:lerp(g.L,g.R,k),y:g.T};}
+    if(u<0.67){const k=(u-0.34)/0.33;return{x:lerp(g.R,bx,k),y:lerp(g.T,by,k)};}
+    const k=(u-0.67)/0.33;return{x:lerp(bx,g.L,k),y:lerp(by,g.T,k)}; }
+  const DATA=[0.06,0.12,0.10,0.20,0.17,0.30,0.27,0.42,0.46,0.62,0.70,0.86,1.0];
+  function sampleData(u){ const n=DATA.length-1, f=clamp01(u)*n, i=Math.min(n-1,Math.floor(f)); return lerp(DATA[i],DATA[i+1],f-i); }
+  function sGraph(u){ const g=geo(); const x0=W*0.18,x1=W*0.82, base=g.B+g.h*0.30, amp=g.h*1.5;
+    return {x:lerp(x0,x1,u), y:base-sampleData(u)*amp}; }
+  const STATES=[sLine,sRect,sRect,sFunnel,sGraph];
+
+  const M=120;                                            // points du fil
+  function threadNodes(){
+    const i0=clamp(Math.floor(pos),0,N-1), i1=Math.min(N-1,i0+1), fr=pos-i0;
+    const tw=easeInOut(sstep(0.5,0.95,fr));                // voyage calé en fin de transition (temps de lecture)
+    const A=STATES[i0], B=STATES[i1], out=new Array(M);
+    for(let i=0;i<M;i++){ const u=i/(M-1); const a=A(u), b=B(u);
+      out[i]={x:lerp(a.x,b.x,tw), y:lerp(a.y,b.y,tw), u}; }
+    return out;
+  }
+  function strokePath(nodes,a,b){            // trace nodes[a..b] avec lissage quadratique
+    if(b-a<1)return; ctx.beginPath(); ctx.moveTo(nodes[a].x,nodes[a].y);
+    for(let i=a+1;i<b;i++){ const p=nodes[i],n=nodes[i+1]||p; ctx.quadraticCurveTo(p.x,p.y,(p.x+n.x)/2,(p.y+n.y)/2); }
+    ctx.lineTo(nodes[b].x,nodes[b].y); ctx.stroke();
+  }
+
+  // ── particules (trafic -> leads) ──
+  let visitors=[];
+  function build(){ visitors=[]; const n=Math.round(Math.min(70,Math.max(36,W/26)));
+    for(let i=0;i<n;i++){ const a=Math.random()*TAU; visitors.push({
+      a, rad:0.7+Math.random()*0.7, sp:0.4+Math.random()*0.8, ph:Math.random()*TAU,
+      lane:Math.random(), r:1.6+Math.random()*1.3, cap:0 }); }
+  }
+
+  const STATE_SLOT={x:0.5,y:0.58};                         // recalé sur le bouton CTA
   function resize(){ DPR=Math.min(devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
     cv.width=W*DPR; cv.height=H*DPR; cv.style.width=W+'px'; cv.style.height=H+'px'; ctx.setTransform(DPR,0,0,DPR,0,0); build(); }
   addEventListener('resize',resize);
 
+  // ── scroll ──
   let scrollT=0;
-  function dwell(x){const i=Math.floor(x),f=x-i;return i+sstep(0.44,0.86,f);}            // pause de lecture (tient plus longtemps sur le chapitre)
-  addEventListener('scroll',()=>{const m=document.documentElement.scrollHeight-innerHeight;
-    scrollT=dwell((m>0?clamp01(scrollY/m):0)*(N-1)); hint.style.opacity=scrollY<40?'1':'0';},{passive:true});
+  function dwell(x){const i=Math.floor(x),f=x-i;return i+sstep(0.42,0.88,f);}   // tient plus longtemps au centre du chapitre
+  function rawPos(){const m=document.documentElement.scrollHeight-innerHeight;return (m>0?clamp01(scrollY/m):0)*(N-1);}
+  addEventListener('scroll',()=>{ scrollT=dwell(rawPos()); if(hint)hint.style.opacity=scrollY<40?'1':'0'; },{passive:true});
   let lenis=null;
-  if(window.Lenis && !matchMedia('(prefers-reduced-motion:reduce)').matches){
+  if(window.Lenis && !reduced){
     lenis=new Lenis({duration:1.1, easing:t=>1-Math.pow(1-t,3)});
     const navc=document.querySelector('.nav-cta'); if(navc) navc.addEventListener('click',e=>{e.preventDefault();lenis.scrollTo('#contact',{duration:1.3});});
   }
   const goTo=i=>{const m=document.documentElement.scrollHeight-innerHeight;const y=(i/(N-1))*m; lenis?lenis.scrollTo(y,{duration:1.2}):scrollTo({top:y,behavior:'smooth'});};
   railBtns.forEach(b=>b.addEventListener('click',()=>goTo(+b.dataset.i)));
-  const pt={x:0,y:0}, trail=[];
 
+  // ── dessin d'une scène (tout piloté par pos/raw + t) ──
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    const sc=sceneRGBArr(pos), bg=[244,241,233];
+    document.body.style.backgroundColor=`rgb(${bg.map((c,i)=>Math.round(c*0.965+sc[i]*0.035)).join(',')})`;
+    const SC=sceneRGB(pos);
+    const g=geo();
+    const raw=rawPos();
+
+    // recale le slot CTA
+    const slot=document.getElementById('slot'); if(slot){const r=slot.getBoundingClientRect(); if(r.width){STATE_SLOT.x=(r.left+r.width/2)/W;STATE_SLOT.y=(r.top+r.height/2)/H;}}
+
+    const HOLD=i=>1-sstep(0.04,0.46,Math.abs(pos-i));      // 1 au centre (lecture)
+    const nodes=threadNodes();
+
+    // ── le fil d'encre (toujours présent) ──
+    ctx.lineJoin='round'; ctx.lineCap='round';
+    ctx.strokeStyle='rgba('+INK+',0.55)'; ctx.lineWidth=1.6;
+    strokePath(nodes,0,M-1);
+    // segment "fraîchement tracé" : surbrillance d'accent qui glisse (scrub-réactif)
+    const hu=(raw/(N-1));
+    const hi=clamp(Math.round(hu*(M-1)),0,M-1), span=Math.round(M*0.14);
+    ctx.strokeStyle='rgba('+SC+',0.85)'; ctx.lineWidth=2.1;
+    strokePath(nodes,Math.max(0,hi-span),Math.min(M-1,hi+2));
+    // tête de stylo
+    const head=nodes[Math.min(M-1,hi+2)]||nodes[M-1];
+
+    // ── 0 Signal : ondes émises par l'impulsion ──
+    const a0=1-sstep(0.40,0.66,Math.abs(pos-0));
+    if(a0>0.01){ const pc=(t*0.10)%1.0, ix=lerp(W*0.16,W*0.84,pc), iy=g.T+g.h*0.5-g.h*0.34;
+      for(let i=0;i<3;i++){ const ph=((t*0.22+i/3)%1); const rad=10+easeOut(ph)*120;
+        ctx.beginPath();ctx.arc(ix,iy,rad,0,TAU);ctx.strokeStyle='rgba('+INK+','+((1-ph)*0.16*a0)+')';ctx.lineWidth=1;ctx.stroke(); } }
+
+    // ── 1 Créer : UI tracée à l'intérieur du cadre ──
+    const a1=HOLD(1)*(1-sstep(0.46,0.66,Math.abs(pos-1)));
+    if(a1>0.01){ const dp=sstep(0.55,1.06,raw);            // construction au scroll
+      ctx.save(); ctx.beginPath(); ctx.rect(g.L,g.T,g.w,g.h); ctx.clip();
+      // barre + pastilles
+      const bh=g.h*0.13;
+      ctx.fillStyle='rgba('+SC+',0.10)'; ctx.fillRect(g.L,g.T,g.w,bh);
+      [0.6,0.36,0.18].forEach((op,i)=>{ ctx.fillStyle='rgba('+INK+','+(op*a1)+')'; ctx.beginPath();ctx.arc(g.L+10+i*11,g.T+bh/2,2.6,0,TAU);ctx.fill(); });
+      // hero block
+      const c1=sstep(0.15,0.5,dp)*a1;
+      ctx.globalAlpha=c1; ctx.fillStyle='rgba('+SC+',0.16)';
+      if(ctx.roundRect){ctx.beginPath();ctx.roundRect(g.L+g.w*0.06,g.T+bh+g.h*0.10,g.w*0.50,g.h*0.30,4);ctx.fill();}
+      // lignes de texte
+      [[0.40,0],[0.30,0.10],[0.36,0.20]].forEach(([lw,ly])=>{ ctx.fillStyle='rgba('+INK+',0.12)';
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(g.L+g.w*0.06,g.T+bh+g.h*0.46+ly*g.h,g.w*lw,4,2);ctx.fill();} });
+      // CTA pill
+      const c2=sstep(0.45,0.8,dp)*a1; ctx.globalAlpha=c2; ctx.fillStyle='rgba('+SC+',0.5)';
+      if(ctx.roundRect){ctx.beginPath();ctx.roundRect(g.L+g.w*0.06,g.B-g.h*0.20,g.w*0.30,g.h*0.10,99);ctx.fill();}
+      // visuel à droite
+      ctx.globalAlpha=c1; ctx.strokeStyle='rgba('+SC+',0.4)'; ctx.lineWidth=1.2;
+      if(ctx.roundRect){ctx.beginPath();ctx.roundRect(g.L+g.w*0.62,g.T+bh+g.h*0.12,g.w*0.30,g.h*0.5,4);ctx.stroke();}
+      ctx.restore();
+    }
+
+    // ── 2 Attirer & 3 Convertir : visiteurs -> leads ──
+    const attract=sstep(1.45,2.05,pos)*(1-sstep(3.6,4.1,pos));
+    const convert=sstep(2.5,3.05,pos)*(1-sstep(3.7,4.1,pos));
+    if(attract>0.01){
+      const kcap=1-Math.exp(-6.3*0.016);
+      const ax=g.cx, ay=g.cy;                              // cible : le cadre
+      for(let i=0;i<visitors.length;i++){ const v=visitors[i];
+        // position dispersée -> bord du cadre
+        const ang=v.a+t*0.04*v.sp, Rr=Math.min(W,H)*0.46*v.rad;
+        const ox=ax+Math.cos(ang)*g.w*0.5*1.1, oy=ay+Math.sin(ang)*g.h*0.5*1.1;
+        const sx=ax+Math.cos(ang)*Rr, sy=ay+Math.sin(ang)*Rr;
+        const ea=easeInOut(attract); let x=lerp(sx,ox,ea), y=lerp(sy,oy,ea);
+        // conversion : aspiration vers l'entonnoir (bas du cadre) puis sortie en lead
+        const capT=(i/visitors.length<convert)?1:0; v.cap+=(capT-v.cap)*kcap;
+        const fx=g.cx, fy=g.B+g.h*0.30;                    // pointe de l'entonnoir
+        x=lerp(x,fx,v.cap*0.9); y=lerp(y,fy,v.cap*0.9);
+        const isLead=v.cap>0.4;
+        if(attract>0.3 && v.cap<0.85){ ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(x,y);
+          ctx.strokeStyle='rgba('+INK+','+(0.045*attract)+')';ctx.lineWidth=1;ctx.stroke(); }
+        ctx.beginPath();ctx.arc(x,y,Math.max(0.6,v.r*(1-v.cap*0.4)),0,TAU);
+        ctx.fillStyle=isLead?'rgba('+SC+','+(0.9*(1-v.cap*0.4))+')':'rgba('+INK+',0.5)'; ctx.fill();
+      }
+      // amas de leads sous l'entonnoir
+      if(convert>0.2){ const lx=g.cx, ly=g.B+g.h*0.42;
+        for(let i=0;i<10;i++){ const a=i/10*TAU; const rr=8+ (i%3)*5;
+          ctx.beginPath();ctx.arc(lx+Math.cos(a+t*0.4)*rr,ly+Math.sin(a+t*0.4)*rr*0.7,1.8,0,TAU);
+          ctx.fillStyle='rgba('+SC+','+(0.7*convert)+')';ctx.fill(); } }
+    }
+
+    // ── 4 Analyser : points de données sur la courbe + tête de lecture ──
+    const a4=HOLD(4)*(1-sstep(0.46,0.66,Math.abs(pos-4)));
+    if(a4>0.01){
+      // aire sous la courbe
+      const base=g.B+g.h*0.30;
+      ctx.save(); ctx.globalAlpha=a4;
+      const ag=ctx.createLinearGradient(0,g.T,0,base);
+      ag.addColorStop(0,'rgba('+SC+',0.16)'); ag.addColorStop(1,'rgba('+SC+',0)');
+      ctx.beginPath(); ctx.moveTo(nodes[0].x,base);
+      for(let i=0;i<M;i++)ctx.lineTo(nodes[i].x,nodes[i].y);
+      ctx.lineTo(nodes[M-1].x,base); ctx.closePath(); ctx.fillStyle=ag; ctx.fill();
+      // points de données
+      for(let i=0;i<DATA.length;i++){ const u=i/(DATA.length-1); const nd=nodes[Math.round(u*(M-1))];
+        ctx.beginPath();ctx.arc(nd.x,nd.y,2.4,0,TAU);ctx.fillStyle='rgba('+SC+',0.9)';ctx.fill(); }
+      ctx.restore();
+    }
+
+    // ── tête de stylo (encre) + halo de scène ──
+    const dock=sstep(3.55,3.95,pos);
+    let hx=head.x, hy=head.y;
+    if(dock>0.01){ hx=lerp(hx,STATE_SLOT.x*W,dock); hy=lerp(hy,STATE_SLOT.y*H,dock); }
+    const hr=4.6*(1+Math.sin(t*1.2)*0.06)*(1-dock*0.5);
+    const glowR=hr*6, grd=ctx.createRadialGradient(hx,hy,0,hx,hy,glowR);
+    grd.addColorStop(0,'rgba('+SC+',0.22)'); grd.addColorStop(1,'rgba('+SC+',0)');
+    ctx.beginPath();ctx.arc(hx,hy,glowR,0,TAU);ctx.fillStyle=grd;ctx.fill();
+    ctx.beginPath();ctx.arc(hx,hy,hr,0,TAU);ctx.fillStyle='rgba('+INK+',0.82)';ctx.fill();
+    ctx.beginPath();ctx.arc(hx,hy,hr+3,0,TAU);ctx.strokeStyle='rgba('+SC+',0.32)';ctx.lineWidth=1;ctx.stroke();
+
+    // ── rail + récap ──
+    const act=Math.max(0,Math.min(N-1,Math.round(pos)));
+    railBtns.forEach((b,i)=>b.dataset.on=i===act?'1':'0');
+    document.documentElement.style.setProperty('--rail-c',SCENE_HEX[act]);
+    recapSpans.forEach((s,i)=>s.classList.toggle('lit', pos>3.55 + i*0.10));
+  }
 
   function frame(now){
     now=now||performance.now();
     const dt=Math.min(0.05,(now-prev)/1000); prev=now;
     if(lenis) lenis.raf(now);
     t+=dt; pos+=(scrollT-pos)*(1-Math.exp(-K_POS*dt));
-    ctx.clearRect(0,0,W,H);
-    // teinte papier par section (fond body glisse vers la couleur de scène)
-    const sc=sceneRGBArr(pos),bg=[244,241,233];
-    document.body.style.backgroundColor=`rgb(${bg.map((c,i)=>Math.round(c*0.965+sc[i]*0.035)).join(',')})`;
-
-    const slot=document.getElementById('slot'); if(slot){const r=slot.getBoundingClientRect(); if(r.width){STATE[4].x=(r.left+r.width/2)/W;STATE[4].y=(r.top+r.height/2)/H;}}
-
-    const i0=Math.max(0,Math.min(N-1,Math.floor(pos))), i1=Math.min(N-1,i0+1), frac=pos-i0;
-    const travel=easeInOut(sstep(0.5,0.95,frac));
-    const tgx=lerp(STATE[i0].x,STATE[i1].x,travel)*W, tgy=lerp(STATE[i0].y,STATE[i1].y,travel)*H;
-    if(!pt.x){pt.x=tgx;pt.y=tgy;} const kpt=1-Math.exp(-K_PT*dt); pt.x+=(tgx-pt.x)*kpt; pt.y+=(tgy-pt.y)*kpt;
-    const kcap=1-Math.exp(-6.3*dt);
-    const px=pt.x, py=pt.y;
-    // traînée encre très discrète
-    const lpt=trail[trail.length-1]; if(!lpt||Math.hypot(px-lpt.x,py-lpt.y)>3){trail.push({x:px,y:py});if(trail.length>22)trail.shift();}
-    for(let i=1;i<trail.length;i++){const a=(i/trail.length)*0.06;ctx.beginPath();ctx.moveTo(trail[i-1].x,trail[i-1].y);ctx.lineTo(trail[i].x,trail[i].y);ctx.strokeStyle='rgba('+INK+','+a.toFixed(3)+')';ctx.lineWidth=1;ctx.stroke();}
-    const A=i=>sstep(i-0.4,i+0.12,pos);
-    const _m=document.documentElement.scrollHeight-innerHeight, rawScene=(_m>0?clamp01(scrollY/_m):0)*(N-1);
-    let orbX=px, orbY=py;
-
-    // SCÈNE 0 : signal (ondes fines)
-    const a0=1-sstep(0.35,0.62,Math.abs(pos-0));
-    if(a0>0.01){ for(let i=0;i<3;i++){ const ph=((t*0.1+i/3)%1); const rad=18+ph*150;
-      ctx.beginPath();ctx.arc(px,py,rad,0,TAU);ctx.strokeStyle='rgba('+INK+','+((1-ph)*0.16*a0)+')';ctx.lineWidth=1;ctx.stroke(); } }
-
-    // SCÈNE 1 : Créer — cartes minimalistes
-    const siteA=(1-sstep(0.85,1.7,pos))*sstep(0.42,0.9,pos);
-    if(siteA>0.01){
-      const dp=sstep(0.36,1.02,rawScene); const sc=sceneRGB(pos);
-      const mob=W<640;
-      const bcx=mob?W*0.50:W*0.695, bcy=mob?H*0.620:H*0.500;
-      const sk=mob?0.70:Math.min(0.92,W/1300);
-
-      const card=(ox,oy,cw,ch,rot,ap,fn)=>{
-        const ca=sstep(ap,ap+0.16,dp)*siteA; if(ca<0.01)return;
-        const x=bcx+ox*sk, y=bcy+oy*sk, w=cw*sk, h=ch*sk;
-        ctx.save(); ctx.globalAlpha=ca;
-        ctx.translate(x,y); ctx.rotate(rot*Math.PI/180);
-        ctx.shadowColor='rgba(0,0,0,0.06)'; ctx.shadowBlur=16; ctx.shadowOffsetY=5;
-        ctx.fillStyle='rgba(244,241,233,0.98)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2,-h/2,w,h,7);ctx.fill();ctx.clip();}
-        ctx.shadowBlur=0; ctx.shadowOffsetY=0;
-        fn(w,h); ctx.restore();
-      };
-
-      // 1 – fenêtre navigateur (desktop)
-      card(-96,-80,152,106,-2.0,0.00,(w,h)=>{
-        const bh=h*0.14;
-        ctx.fillStyle='rgba('+sc+',0.09)';
-        ctx.fillRect(-w/2,-h/2,w,bh);
-        // traffic lights
-        [0.65,0.38,0.18].forEach((op,i)=>{
-          ctx.fillStyle='rgba('+INK+','+op+')';
-          ctx.beginPath();ctx.arc(-w/2+7+i*9,-h/2+bh/2,2.6,0,TAU);ctx.fill();
-        });
-        // URL bar
-        ctx.fillStyle='rgba('+INK+',0.07)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+32,-h/2+bh*0.18,w*0.48,bh*0.64,2);ctx.fill();}
-        // hero block
-        const cy=-h/2+bh+8;
-        ctx.fillStyle='rgba('+sc+',0.13)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+8,cy,w-16,h*0.28,2);ctx.fill();}
-        // lignes contenu
-        [[0.56,0],[0.42,13],[0.50,24]].forEach(([lw,ly])=>{
-          ctx.fillStyle='rgba('+INK+',0.09)';
-          if(ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+8,cy+h*0.33+ly,w*lw,4,2);ctx.fill();}
-        });
-        // CTA pill
-        ctx.fillStyle='rgba('+sc+',0.52)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+8,h/2-16,w*0.34,10,99);ctx.fill();}
-      });
-
-      // 2 – cadre mobile
-      card(82,-56,58,100,2.5,0.22,(w,h)=>{
-        ctx.strokeStyle='rgba('+sc+',0.46)'; ctx.lineWidth=1.5;
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+1,-h/2+1,w-2,h-2,9);ctx.stroke();}
-        // notch
-        ctx.fillStyle='rgba('+INK+',0.14)';
-        ctx.beginPath();ctx.arc(0,-h/2+7,4.5,0,TAU);ctx.fill();
-        // hero
-        ctx.fillStyle='rgba('+sc+',0.14)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+5,-h/2+16,w-10,h*0.25,3);ctx.fill();}
-        // lignes
-        [[-6,0.55],[5,0.42],[16,0.48]].forEach(([ly,lw])=>{
-          ctx.fillStyle='rgba('+INK+',0.10)';
-          if(ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+5,h*0.08+ly,w*lw,3.5,2);ctx.fill();}
-        });
-        // pill button
-        ctx.fillStyle='rgba('+sc+',0.52)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(-w*0.30,h/2-18,w*0.60,10,99);ctx.fill();}
-      });
-
-      // 3 – typographie Aa
-      card(-50,60,88,56,1.5,0.40,(w,h)=>{
-        ctx.fillStyle='rgba('+sc+',0.86)';
-        ctx.font='bold '+Math.round(h*0.58)+'px Sora,sans-serif';
-        ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillText('Aa',0,2);
-      });
-
-      // 4 – palette teinte
-      card(70,54,108,38,2.0,0.58,(w,h)=>{
-        [0.88,0.58,0.28,0.10].forEach((a,i)=>{
-          ctx.fillStyle='rgba('+sc+','+a+')';
-          const sw=w/4;
-          if(i===0&&ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+i*sw,-h/2+10,sw,h-20,[4,0,0,4]);ctx.fill();}
-          else if(i===3&&ctx.roundRect){ctx.beginPath();ctx.roundRect(-w/2+i*sw,-h/2+10,sw,h-20,[0,4,4,0]);ctx.fill();}
-          else ctx.fillRect(-w/2+i*sw,-h/2+10,sw,h-20);
-        });
-      });
-
-      const fol1=sstep(0.05,0.28,dp)*(1-sstep(0.78,0.96,dp));
-      orbX=lerp(px,mob?W*0.5:bcx+(-96)*sk,fol1); orbY=lerp(py,mob?H*0.58:bcy+(-80)*sk,fol1);
-    }
-
-    // SCÈNES 2-3 : visiteurs (encre) -> leads (accent)
-    const arrive=sstep(1.45,2.45,pos);
-    const convert=A(3);
-    const aDots=Math.max(1-sstep(3.7,4.2,pos),0);
-    const R=Math.min(W,H)*0.28;
-    if((arrive>0.01||convert>0.01)&&aDots>0.01){
-      for(let i=0;i<visitors.length;i++){ const v=visitors[i];
-        const ox=px+Math.cos(v.oa+t*0.05*v.sp)*R*v.orad, oy=py+Math.sin(v.oa+t*0.05*v.sp)*R*v.orad;
-        const ea=easeInOut(arrive); let x=lerp(px+v.sx,ox,ea), y=lerp(py+v.sy,oy,ea);
-        const capT=(i/visitors.length<convert)?1:0; v.cap+=(capT-v.cap)*kcap;
-        x=lerp(x,px,v.cap); y=lerp(y,py,v.cap);
-        const isLead=v.cap>0.35;
-        if(arrive>0.3 && v.cap<0.9){ ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(x,y);
-          ctx.strokeStyle='rgba('+INK+','+(0.05*arrive*aDots)+')';ctx.lineWidth=1;ctx.stroke(); }
-        const rr=(2+(isLead?1:0))*(1-v.cap*0.6);
-        ctx.beginPath();ctx.arc(x,y,Math.max(0.5,rr),0,TAU);
-        ctx.fillStyle=isLead?'rgba('+sceneRGB(pos)+','+(0.9*aDots*(1-v.cap*0.5))+')':'rgba('+INK+','+(0.55*aDots)+')';
-        ctx.fill();
-      }
-    }
-
-    // SCÈNE 2 : Attirer — graphique minimaliste
-    const attrA=(1-sstep(1.85,2.72,pos))*sstep(1.40,1.88,pos);
-    if(attrA>0.01){
-      const dp2=sstep(1.36,2.06,rawScene); const sc2=sceneRGB(pos);
-      const mob=W<640;
-      const bw=Math.min(mob?W*0.78:W*0.270,258), bh=bw*0.72;
-      const bcx=mob?W*0.50:W*0.262, bcy=mob?H*0.600:H*0.502;
-      const bx=bcx-bw/2, by=bcy-bh/2;
-
-      // fond panneau
-      const bf=sstep(0,0.16,dp2)*attrA;
-      if(bf>0.01){
-        ctx.save(); ctx.globalAlpha=bf;
-        ctx.shadowColor='rgba(0,0,0,0.08)'; ctx.shadowBlur=18; ctx.shadowOffsetY=5;
-        ctx.fillStyle='rgba(244,241,233,0.98)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bx,by,bw,bh,8);ctx.fill();}
-        ctx.shadowBlur=0; ctx.restore();
-        // deux métriques simulées
-        ctx.globalAlpha=bf;
-        ctx.fillStyle='rgba('+sc2+',0.88)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bx+14,by+14,bw*0.24,8,3);ctx.fill();}
-        ctx.fillStyle='rgba('+INK+',0.12)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bx+14,by+26,bw*0.32,3.5,2);ctx.fill();}
-        ctx.fillStyle='rgba('+sc2+',0.68)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bx+bw*0.46,by+14,bw*0.18,8,3);ctx.fill();}
-        ctx.fillStyle='rgba('+INK+',0.12)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bx+bw*0.46,by+26,bw*0.24,3.5,2);ctx.fill();}
-        ctx.globalAlpha=1;
-      }
-
-      // courbe
-      const chartData=[0.22,0.34,0.29,0.46,0.40,0.60,0.55,0.72,0.68,0.83,0.80,0.95];
-      const chartY=by+bh*0.40, chartH=bh*0.46, chartW=bw-28;
-      const cfd=sstep(0.18,0.54,dp2)*attrA;
-      if(cfd>0.01){
-        ctx.globalAlpha=cfd;
-        ctx.strokeStyle='rgba('+INK+',0.06)'; ctx.lineWidth=0.7;
-        ctx.beginPath();ctx.moveTo(bx+14,chartY+chartH);ctx.lineTo(bx+bw-14,chartY+chartH);ctx.stroke();
-        const prog=sstep(0.18,0.54,dp2);
-        const pts=chartData.map((v,i)=>({x:bx+14+i*(chartW/(chartData.length-1)),y:chartY+chartH*(1-v)}));
-        const vPts=pts.slice(0,Math.max(2,Math.round(prog*(pts.length-1))+1));
-        const ag=ctx.createLinearGradient(0,chartY,0,chartY+chartH);
-        ag.addColorStop(0,'rgba('+sc2+',0.18)'); ag.addColorStop(1,'rgba('+sc2+',0)');
-        ctx.beginPath();ctx.moveTo(vPts[0].x,chartY+chartH);
-        vPts.forEach(p=>ctx.lineTo(p.x,p.y));
-        ctx.lineTo(vPts[vPts.length-1].x,chartY+chartH);ctx.closePath();ctx.fillStyle=ag;ctx.fill();
-        ctx.strokeStyle='rgba('+sc2+',0.82)';ctx.lineWidth=1.8;ctx.lineJoin='round';ctx.lineCap='round';
-        ctx.beginPath();ctx.moveTo(vPts[0].x,vPts[0].y);vPts.forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke();
-        const lpt2=vPts[vPts.length-1];
-        ctx.fillStyle='rgba('+sc2+',1)';ctx.beginPath();ctx.arc(lpt2.x,lpt2.y,3,0,TAU);ctx.fill();
-        ctx.fillStyle='rgba(244,241,233,0.95)';ctx.beginPath();ctx.arc(lpt2.x,lpt2.y,1.4,0,TAU);ctx.fill();
-        ctx.globalAlpha=1;
-      }
-
-      const fol2=sstep(0.06,0.30,dp2)*(1-sstep(0.80,0.98,dp2));
-      orbX=lerp(px,mob?W*0.50:bcx,fol2); orbY=lerp(py,mob?H*0.58:bcy,fol2);
-    }
-
-    // SCÈNE 3 : Convertir — formulaire épuré
-    const convA=(1-sstep(2.85,3.70,pos))*sstep(2.42,2.90,pos);
-    if(convA>0.01){
-      const dp3=sstep(2.36,3.07,rawScene); const sc3=sceneRGB(pos);
-      const mob=W<640;
-      const fw=Math.min(mob?W*0.72:W*0.198,186), fh=fw*1.22;
-      const fcx=mob?W*0.50:W*0.718, fcy=mob?H*0.600:H*0.486;
-      const fx=fcx-fw/2, fy=fcy-fh/2;
-
-      // fond du formulaire
-      const fpf=sstep(0,0.18,dp3)*convA;
-      if(fpf>0.01){
-        ctx.save(); ctx.globalAlpha=fpf;
-        ctx.shadowColor='rgba(0,0,0,0.08)'; ctx.shadowBlur=16; ctx.shadowOffsetY=5;
-        ctx.fillStyle='rgba(244,241,233,0.98)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(fx,fy,fw,fh,8);ctx.fill();}
-        ctx.shadowBlur=0; ctx.restore();
-        ctx.globalAlpha=fpf;
-        ctx.fillStyle='rgba('+sc3+',0.78)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(fx+14,fy+14,fw*0.38,7,3);ctx.fill();}
-        ctx.fillStyle='rgba('+INK+',0.10)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(fx+14,fy+25,fw*0.26,3.5,2);ctx.fill();}
-        ctx.globalAlpha=1;
-      }
-
-      // champs épurés
-      for(let fi=0;fi<3;fi++){
-        const sd=0.16+fi*0.13, fa=sstep(sd,sd+0.16,dp3)*convA;
-        if(fa<0.01) continue;
-        ctx.globalAlpha=fa;
-        const fy0=fy+fh*0.22+fi*fh*0.205;
-        ctx.strokeStyle='rgba('+sc3+','+(fi===1?0.50:0.18)+')'; ctx.lineWidth=fi===1?1.2:1;
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(fx+14,fy0,fw-28,fh*0.092,3);ctx.stroke();}
-        if(fi<2){
-          ctx.fillStyle='rgba('+INK+',0.14)';
-          if(ctx.roundRect){ctx.beginPath();ctx.roundRect(fx+18,fy0+5,fw*(fi===0?0.46:0.34),3.5,2);ctx.fill();}
-        } else {
-          const curV=Math.sin(t*4)>0?1:0;
-          ctx.fillStyle='rgba('+sc3+','+curV+')';
-          ctx.fillRect(fx+18,fy0+5,1.6,10);
-        }
-        ctx.globalAlpha=1;
-      }
-
-      // bouton pill
-      const sbA=sstep(0.60,0.78,dp3)*convA;
-      if(sbA>0.01){
-        ctx.globalAlpha=sbA;
-        const sbY=fy+fh*0.845;
-        ctx.fillStyle='rgba('+sc3+',0.82)';
-        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(fx+14,sbY,fw-28,fh*0.092,99);ctx.fill();}
-        ctx.globalAlpha=1;
-      }
-
-      const fol3=sstep(0.06,0.30,dp3)*(1-sstep(0.80,0.98,dp3));
-      orbX=lerp(px,mob?W*0.50:fcx,fol3); orbY=lerp(py,mob?H*0.58:fcy,fol3);
-    }
-
-    // SCÈNE 4 : SONAR — le point émet des anneaux radar qui capturent des blips
-    const sonarA=sstep(3.55,3.95,pos)*(1-sstep(4.3,4.7,pos));
-    if(sonarA>0.01){
-      const cx=orbX, cy=orbY;
-      // balayage rotatif (ligne qui tourne)
-      const sweepA=t*0.45, sweepLen=Math.min(W,H)*0.38*sonarA;
-      ctx.save(); ctx.globalAlpha=0.28*sonarA;
-      const sg=ctx.createLinearGradient(cx,cy,cx+Math.cos(sweepA)*sweepLen,cy+Math.sin(sweepA)*sweepLen);
-      sg.addColorStop(0,'rgba('+INK+',0.55)'); sg.addColorStop(1,'rgba('+INK+',0)');
-      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(sweepA)*sweepLen,cy+Math.sin(sweepA)*sweepLen);
-      ctx.strokeStyle=sg; ctx.lineWidth=2; ctx.stroke();
-      // sillage du balayage (éventail atténué)
-      for(let f=1;f<=5;f++){const fa=sweepA-f*0.08;
-        ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(fa)*sweepLen*(1-f*0.12),cy+Math.sin(fa)*sweepLen*(1-f*0.12));
-        ctx.strokeStyle='rgba('+INK+','+(0.05*(5-f)*sonarA)+')';ctx.lineWidth=1;ctx.stroke();}
-      ctx.restore();
-      // anneaux concentriques qui s'étendent puis s'effacent
-      for(let i=0;i<4;i++){const ph=((t*0.12+i*0.25)%1); const rad=12+ph*Math.min(W,H)*0.42;
-        ctx.beginPath();ctx.arc(cx,cy,rad,0,TAU);
-        ctx.strokeStyle='rgba('+INK+','+((1-ph)*0.14*sonarA).toFixed(3)+')';ctx.lineWidth=1.2;ctx.stroke();}
-      // blips (cibles capturées) qui s'allument quand le balayage les touche
-      const blips=[{a:.82,r:.28},{a:1.95,r:.36},{a:3.4,r:.22},{a:4.1,r:.30},{a:5.2,r:.18},{a:-.5,r:.32}];
-      blips.forEach((b,i)=>{
-        const bx=cx+Math.cos(b.a)*sweepLen*b.r, by=cy+Math.sin(b.a)*sweepLen*b.r;
-        const diff=((sweepA-b.a)%(TAU)+TAU)%TAU; const lit=Math.max(0,1-diff/0.55)*sonarA;
-        if(lit>0.01){
-          ctx.beginPath();ctx.arc(bx,by,3.5,0,TAU);ctx.fillStyle='rgba('+sceneRGB(pos)+','+lit.toFixed(3)+')';ctx.fill();
-          ctx.beginPath();ctx.arc(bx,by,3.5+lit*8,0,TAU);ctx.strokeStyle='rgba('+sceneRGB(pos)+','+(lit*0.35).toFixed(3)+')';ctx.lineWidth=1;ctx.stroke();
-        } else {
-          ctx.beginPath();ctx.arc(bx,by,2,0,TAU);ctx.fillStyle='rgba('+INK+','+(0.2*sonarA)+')';ctx.fill();
-        }
-      });
-    }
-
-    // LE POINT : orbe gradient fluide, qui rétrécit en s'amarrant au CTA
-    const dock=sstep(3.5,3.95,pos);
-    const hr=4.5*(1+Math.sin(t*1.2)*0.06)*(1-dock*0.55);
-    // halo coloré doux
-    const glowR=hr*6;
-    const grd=ctx.createRadialGradient(orbX,orbY,0,orbX,orbY,glowR);
-    grd.addColorStop(0,'rgba('+sceneRGB(pos)+',0.20)');
-    grd.addColorStop(1,'rgba('+sceneRGB(pos)+',0)');
-    ctx.beginPath();ctx.arc(orbX,orbY,glowR,0,TAU);ctx.fillStyle=grd;ctx.fill();
-    // point encre principal
-    ctx.beginPath();ctx.arc(orbX,orbY,hr,0,TAU);
-    ctx.fillStyle='rgba('+INK+',0.82)';ctx.fill();
-    // anneau coloré fin autour du point
-    ctx.beginPath();ctx.arc(orbX,orbY,hr+3,0,TAU);
-    ctx.strokeStyle='rgba('+sceneRGB(pos)+',0.32)';ctx.lineWidth=1;ctx.stroke();
-
-    // rail + récap
-    const act=Math.max(0,Math.min(N-1,Math.round(pos)));
-    railBtns.forEach((b,i)=>b.dataset.on=i===act?'1':'0');
-    document.documentElement.style.setProperty('--rail-c',SCENE_HEX[act]);
-    recapSpans.forEach((s,i)=>s.classList.toggle('lit', pos>3.55 + i*0.10));
-
+    render();
     requestAnimationFrame(frame);
   }
 
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:0.4});
   document.querySelectorAll('.act').forEach(s=>io.observe(s));
 
-  resize(); requestAnimationFrame(frame);
+  // hook de test : rend une frame figée à une position donnée (utile quand le RAF est gelé)
+  window.__cz={ render, set(p,time){pos=p; if(typeof time==='number')t=time; render();}, geo:()=>geo() };
+
+  resize(); scrollT=dwell(rawPos()); pos=scrollT; requestAnimationFrame(frame);
 })();
 </script>
 </body>
