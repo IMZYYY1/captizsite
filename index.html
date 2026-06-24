@@ -138,8 +138,8 @@
   const cv=document.getElementById('c'), ctx=cv.getContext('2d');
   const hint=document.getElementById('hint');
   const railBtns=[...document.querySelectorAll('#rail button')], recapSpans=[...document.querySelectorAll('#recap [data-r]')];
-  const N=5; let W,H,DPR, pos=0, t=0, prev=performance.now();
-  const K_POS=5.5;                                        // lissage scroll (par seconde)
+  const N=5; let W,H,DPR, pos=0, t=0, prev=performance.now(), lastDt=1/60;
+  const K_POS=4.8;                                        // lissage scroll (par seconde)
   const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
 
   // ── maths ──
@@ -188,7 +188,7 @@
   const M=120;                                            // points du fil
   function threadNodes(){
     const i0=clamp(Math.floor(pos),0,N-1), i1=Math.min(N-1,i0+1), fr=pos-i0;
-    const tw=easeInOut(sstep(0.5,0.95,fr));                // voyage calé en fin de transition (temps de lecture)
+    const tw=easeInOut(clamp01((fr-0.28)/0.64));           // morph large et continu (repos en début, fin vers 92%)
     const A=STATES[i0], B=STATES[i1], out=new Array(M);
     for(let i=0;i<M;i++){ const u=i/(M-1); const a=A(u), b=B(u);
       out[i]={x:lerp(a.x,b.x,tw), y:lerp(a.y,b.y,tw), u}; }
@@ -209,7 +209,8 @@
   }
 
   const STATE_SLOT={x:0.5,y:0.58};                         // recalé sur le bouton CTA
-  function resize(){ DPR=Math.min(devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
+  function resize(){ if(!innerWidth||!innerHeight)return;             // ignore les tailles nulles (onglet en arrière-plan)
+    DPR=Math.min(devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
     cv.width=W*DPR; cv.height=H*DPR; cv.style.width=W+'px'; cv.style.height=H+'px'; ctx.setTransform(DPR,0,0,DPR,0,0); build(); }
   addEventListener('resize',resize);
 
@@ -233,7 +234,6 @@
     document.body.style.backgroundColor=`rgb(${bg.map((c,i)=>Math.round(c*0.965+sc[i]*0.035)).join(',')})`;
     const SC=sceneRGB(pos);
     const g=geo();
-    const raw=rawPos();
 
     // recale le slot CTA
     const slot=document.getElementById('slot'); if(slot){const r=slot.getBoundingClientRect(); if(r.width){STATE_SLOT.x=(r.left+r.width/2)/W;STATE_SLOT.y=(r.top+r.height/2)/H;}}
@@ -246,7 +246,7 @@
     ctx.strokeStyle='rgba('+INK+',0.55)'; ctx.lineWidth=1.6;
     strokePath(nodes,0,M-1);
     // segment "fraîchement tracé" : surbrillance d'accent qui glisse (scrub-réactif)
-    const hu=(raw/(N-1));
+    const hu=(pos/(N-1));
     const hi=clamp(Math.round(hu*(M-1)),0,M-1), span=Math.round(M*0.14);
     ctx.strokeStyle='rgba('+SC+',0.85)'; ctx.lineWidth=2.1;
     strokePath(nodes,Math.max(0,hi-span),Math.min(M-1,hi+2));
@@ -261,7 +261,7 @@
 
     // ── 1 Créer : UI tracée à l'intérieur du cadre ──
     const a1=HOLD(1)*(1-sstep(0.46,0.66,Math.abs(pos-1)));
-    if(a1>0.01){ const dp=sstep(0.55,1.06,raw);            // construction au scroll
+    if(a1>0.01){ const dp=sstep(0.55,1.06,pos);            // construction au scroll (lissée)
       ctx.save(); ctx.beginPath(); ctx.rect(g.L,g.T,g.w,g.h); ctx.clip();
       // barre + pastilles
       const bh=g.h*0.13;
@@ -287,7 +287,7 @@
     const attract=sstep(1.45,2.05,pos)*(1-sstep(3.6,4.1,pos));
     const convert=sstep(2.5,3.05,pos)*(1-sstep(3.7,4.1,pos));
     if(attract>0.01){
-      const kcap=1-Math.exp(-6.3*0.016);
+      const kcap=1-Math.exp(-6.3*lastDt);
       const ax=g.cx, ay=g.cy;                              // cible : le cadre
       for(let i=0;i<visitors.length;i++){ const v=visitors[i];
         // position dispersée -> bord du cadre
@@ -349,7 +349,7 @@
 
   function frame(now){
     now=now||performance.now();
-    const dt=Math.min(0.05,(now-prev)/1000); prev=now;
+    const dt=Math.min(0.05,(now-prev)/1000); prev=now; lastDt=dt;
     if(lenis) lenis.raf(now);
     t+=dt; pos+=(scrollT-pos)*(1-Math.exp(-K_POS*dt));
     render();
